@@ -231,7 +231,7 @@ export default function EstimateSidebar({
             <div className="font-montserrat text-xs text-center py-3" style={{ color: "rgba(245,237,216,0.15)" }}>Отметьте позиции галочкой</div>
           ) : estimateItems.map((item, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="text-xs flex-shrink-0">{item.icon}</span>
+              <span className="flex-shrink-0 mt-0.5"><Icon name={item.icon} size={11} style={{ color: "rgba(201,169,110,0.5)" }} /></span>
               <div className="flex-1 min-w-0">
                 <div className="font-montserrat truncate" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.4)" }}>{item.name}</div>
                 <div className="flex gap-2">
