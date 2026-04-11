@@ -327,6 +327,59 @@ export default function EstimateSidebar({
           </>
         )}
 
+        {estimateItems.length > 0 && (
+          <>
+            <div className="gold-divider mb-4 mt-2" />
+            <div className="font-montserrat text-[9px] tracking-widest uppercase mb-3" style={{ color: "rgba(245,237,216,0.3)" }}>Полная детализация</div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th className="font-montserrat text-left pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.3)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)", paddingRight: 6 }}>Позиция</th>
+                    <th className="font-montserrat text-right pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.3)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)", paddingRight: 6 }}>Пример</th>
+                    <th className="font-montserrat text-right pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.7)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)", paddingRight: 6 }}>Эконом</th>
+                    <th className="font-montserrat text-right pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "var(--gold)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)" }}>Премиум</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {estimateItems.map((item, i) => (
+                    <tr key={i} style={{ borderBottom: "1px solid rgba(201,169,110,0.06)" }}>
+                      <td className="py-1.5 font-montserrat" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.75)", paddingRight: 6 }}>
+                        <span className="flex items-center gap-1">
+                          <Icon name={item.icon} size={9} style={{ color: "rgba(201,169,110,0.6)", flexShrink: 0 }} />
+                          <span className="truncate" style={{ maxWidth: 70 }}>{item.name}</span>
+                        </span>
+                      </td>
+                      <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "rgba(245,237,216,0.35)", paddingRight: 6, whiteSpace: "nowrap" }}>
+                        {item.econom ? FORMAT(item.econom) : "—"}
+                      </td>
+                      <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "rgba(201,169,110,0.85)", paddingRight: 6, whiteSpace: "nowrap" }}>
+                        {item.econom ? FORMAT(item.econom) : "—"}
+                      </td>
+                      <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "var(--gold)", whiteSpace: "nowrap" }}>
+                        {item.premium ? FORMAT(item.premium) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr style={{ borderTop: "1px solid rgba(201,169,110,0.2)" }}>
+                    <td className="pt-2 font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.4)", letterSpacing: "0.1em" }}>ИТОГО</td>
+                    <td className="pt-2 font-cormorant text-right" style={{ fontSize: "0.75rem", color: "rgba(245,237,216,0.35)", paddingRight: 6, whiteSpace: "nowrap" }}>
+                      {totalExampleMin ? FORMAT(totalExampleMin) : "—"}
+                    </td>
+                    <td className="pt-2 font-cormorant text-right" style={{ fontSize: "0.75rem", color: "rgba(201,169,110,0.9)", paddingRight: 6, whiteSpace: "nowrap" }}>
+                      {totalUserMin ? FORMAT(totalUserMin) : "—"}
+                    </td>
+                    <td className="pt-2 font-cormorant text-right" style={{ fontSize: "0.75rem", color: "var(--gold)", whiteSpace: "nowrap" }}>
+                      {totalUserMax ? FORMAT(totalUserMax) : "—"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="gold-divider mt-4 mb-4" />
+          </>
+        )}
+
         <button
           className="w-full font-montserrat text-xs tracking-widest uppercase py-2 transition-all"
           style={{ color: "rgba(245,237,216,0.2)" }}

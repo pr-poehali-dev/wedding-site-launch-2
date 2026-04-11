@@ -98,17 +98,17 @@ export default function HeroAndPortfolio({ visible, lightbox, setLightbox, scrol
             ✦ оформление свадеб ✦ корпоративов ✦ юбилеев ✦
           </div>
           <h1
-            className="font-cormorant mb-3 leading-none animate-fade-up delay-200"
-            style={{ fontSize: "clamp(2.2rem, 6vw, 5.5rem)", fontWeight: 300, color: "var(--cream)", opacity: 0, animationFillMode: "forwards" }}
+            className="font-cormorant mb-2 leading-none animate-fade-up delay-200"
+            style={{ fontSize: "clamp(2.2rem, 6vw, 5.5rem)", fontWeight: 400, fontStyle: "normal", color: "#ffffff", opacity: 0, animationFillMode: "forwards" }}
           >
-            СТУДИЯ ДЕКОРА
+            ЭЛЬВИРЫ ДАУТОВОЙ
           </h1>
-          <h2
-            className="font-cormorant mb-6 animate-fade-up delay-200"
-            style={{ fontSize: "clamp(1.6rem, 4.5vw, 4rem)", fontWeight: 300, color: "var(--gold)", opacity: 0, animationFillMode: "forwards" }}
+          <div
+            className="font-montserrat mb-6 animate-fade-up delay-200 tracking-[0.35em] uppercase"
+            style={{ fontSize: "clamp(0.6rem, 1.2vw, 0.85rem)", color: "var(--gold)", opacity: 0, animationFillMode: "forwards" }}
           >
-            <em>ЭЛЬВИРЫ ДАУТОВОЙ</em>
-          </h2>
+            Студия декора
+          </div>
           <div className="gold-divider max-w-xs mx-auto mb-8 animate-fade-up delay-300" style={{ opacity: 0, animationFillMode: "forwards" }} />
           <p
             className="font-montserrat text-sm leading-relaxed mx-auto mb-12 animate-fade-up delay-400"

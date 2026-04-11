@@ -55,7 +55,7 @@ export const ITEMS: Item[] = [
 
 export const CATEGORIES = [
   { id: "bride", label: "Образ пары", icon: "Heart" },
-  { id: "decor", label: "Оформление", icon: "Flower2" },
+  { id: "decor", label: "Декор", icon: "Flower2" },
   { id: "restaurant", label: "Ресторан", icon: "UtensilsCrossed" },
   { id: "entertainment", label: "Развлечения", icon: "Mic2" },
   { id: "extra", label: "Дополнительно", icon: "Plus" },
