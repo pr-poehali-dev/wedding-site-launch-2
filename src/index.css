@@ -4,89 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 30 10% 6%;
+    --foreground: 45 30% 90%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 8% 9%;
+    --card-foreground: 45 30% 90%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 8% 9%;
+    --popover-foreground: 45 30% 90%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 43 74% 66%;
+    --primary-foreground: 30 10% 6%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 8% 14%;
+    --secondary-foreground: 45 30% 90%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 8% 14%;
+    --muted-foreground: 45 15% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 43 74% 66%;
+    --accent-foreground: 30 10% 6%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 45 30% 90%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 43 30% 20%;
+    --input: 43 30% 20%;
+    --ring: 43 74% 66%;
+
+    --radius: 0.25rem;
+
+    --gold: #c9a96e;
+    --gold-light: #e8d5a3;
+    --gold-dark: #8b6914;
+    --velvet: #0d0b08;
+    --cream: #f5edd8;
+
+    --sidebar-background: 30 10% 6%;
+    --sidebar-foreground: 45 30% 90%;
+    --sidebar-primary: 43 74% 66%;
+    --sidebar-primary-foreground: 30 10% 6%;
+    --sidebar-accent: 30 8% 14%;
+    --sidebar-accent-foreground: 45 30% 90%;
+    --sidebar-border: 43 30% 20%;
+    --sidebar-ring: 43 74% 66%;
   }
 }
 
@@ -95,7 +56,199 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-family: "Montserrat", sans-serif;
+    background-color: var(--velvet);
+  }
+}
+
+@layer utilities {
+  .font-cormorant {
+    font-family: "Cormorant Garamond", serif;
+  }
+
+  .font-montserrat {
+    font-family: "Montserrat", sans-serif;
+  }
+
+  .text-gold {
+    color: var(--gold);
+  }
+
+  .text-gold-light {
+    color: var(--gold-light);
+  }
+
+  .bg-gold {
+    background-color: var(--gold);
+  }
+
+  .border-gold {
+    border-color: var(--gold);
+  }
+
+  .gold-line {
+    display: inline-block;
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .gold-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .texture-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .section-title {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--gold-light);
+  }
+
+  .gold-btn {
+    background: linear-gradient(
+      135deg,
+      var(--gold-dark),
+      var(--gold),
+      var(--gold-dark)
+    );
+    color: var(--velvet);
+    border: none;
+    letter-spacing: 0.15em;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gold-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      var(--gold),
+      var(--gold-light),
+      var(--gold)
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .gold-btn:hover::before {
+    opacity: 1;
+  }
+
+  .gold-btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .gallery-item {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .gallery-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(13, 11, 8, 0.8) 0%,
+      transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .gallery-item:hover::after {
+    opacity: 1;
+  }
+
+  .gallery-item img {
+    transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.08);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fadeInUp 0.9s ease forwards;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--gold-dark),
+      var(--gold-light),
+      var(--gold-dark)
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+
+  .delay-100 {
+    animation-delay: 0.1s;
+  }
+  .delay-200 {
+    animation-delay: 0.2s;
+  }
+  .delay-300 {
+    animation-delay: 0.3s;
+  }
+  .delay-400 {
+    animation-delay: 0.4s;
+  }
+  .delay-500 {
+    animation-delay: 0.5s;
   }
 }
