@@ -101,7 +101,7 @@ export default function WeddingCalculator() {
       premium: getVal(i.id, "max") ? parseInt(getVal(i.id, "max")) * mult(i) : (checked.has(i.id) ? i.defaultMax * mult(i) : 0),
     }));
 
-  const handleDownload = () => {
+  const buildHtmlContent = () => {
     const rows = estimateItems.map((r) =>
       `<tr>
         <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#e8d9b5;">${r.icon} ${r.name}</td>
@@ -109,9 +109,8 @@ export default function WeddingCalculator() {
         <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#f0c96a;text-align:right;">${r.premium ? FORMAT(r.premium) : "—"}</td>
       </tr>`
     ).join("");
-
-    const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"/>
-    <title>Смета — La Belle Époque</title>
+    return `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"/>
+    <title>Смета — Студия декора Эльвиры Даутовой</title>
     <style>
       body{margin:0;padding:32px;background:#0d0b08;font-family:Georgia,serif;color:#e8d9b5;}
       h1{color:#f0c96a;font-weight:normal;letter-spacing:2px;margin:0 0 4px;}
@@ -125,8 +124,8 @@ export default function WeddingCalculator() {
       @media print{body{background:#fff;color:#000;}h1{color:#8B6914;} th,td{color:#000 !important;} }
     </style></head><body>
     <div style="color:#c9a84c;letter-spacing:6px;margin-bottom:16px;">✦ &nbsp; ✦ &nbsp; ✦</div>
-    <h1>La Belle Époque</h1>
-    <p class="sub">Смета свадебного торжества</p>
+    <h1>Студия декора Эльвиры Даутовой</h1>
+    <p class="sub">Смета торжества</p>
     <p style="color:#9c8050;font-size:13px;margin:0 0 16px;">Гостей: <span style="color:#e8d9b5;">${guests} чел.</span></p>
     <table>
       <thead><tr><th>Услуга</th><th>Эконом</th><th>Премиум</th></tr></thead>
@@ -139,14 +138,98 @@ export default function WeddingCalculator() {
     </table>
     <p class="footer">Смета носит ориентировочный характер и уточняется при личной встрече.</p>
     </body></html>`;
+  };
 
+  const buildPlainText = () => {
+    const lines = estimateItems.map((r) =>
+      `${r.name}\t${r.econom ? FORMAT(r.econom) : "—"}\t${r.premium ? FORMAT(r.premium) : "—"}`
+    ).join("\n");
+    const totalMin = totalUserMin || totalExampleMin;
+    const totalMax = totalUserMax || totalExampleMax;
+    return `Студия декора Эльвиры Даутовой\nСмета торжества\nГостей: ${guests} чел.\n\nУслуга\tЭконом\tПремиум\n${lines}\n\nИтого\t${totalMin ? FORMAT(totalMin) : "—"}\t${totalMax ? FORMAT(totalMax) : "—"}\n\nСмета носит ориентировочный характер и уточняется при личной встрече.`;
+  };
+
+  const handleDownloadHtml = () => {
+    const html = buildHtmlContent();
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "smeta-svadba.html";
+    a.download = "smeta.html";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadWord = () => {
+    const rows = estimateItems.map((r) =>
+      `<tr><td>${r.icon} ${r.name}</td><td>${r.econom ? FORMAT(r.econom) : "—"}</td><td>${r.premium ? FORMAT(r.premium) : "—"}</td></tr>`
+    ).join("");
+    const totalMin = totalUserMin || totalExampleMin;
+    const totalMax = totalUserMax || totalExampleMax;
+    const docHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="UTF-8"/><title>Смета</title></head><body>
+      <h1 style="color:#8B6914;font-family:Georgia,serif;">Студия декора Эльвиры Даутовой</h1>
+      <p style="font-family:Georgia,serif;color:#555;">Гостей: ${guests} чел.</p>
+      <table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:Georgia,serif;">
+        <thead><tr style="background:#f5edd0;"><th>Услуга</th><th>Эконом</th><th>Премиум</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr style="background:#f5edd0;font-weight:bold;"><td>Итого</td><td>${totalMin ? FORMAT(totalMin) : "—"}</td><td>${totalMax ? FORMAT(totalMax) : "—"}</td></tr></tfoot>
+      </table>
+      <p style="font-family:Georgia,serif;color:#999;font-style:italic;margin-top:16px;">Смета носит ориентировочный характер и уточняется при личной встрече.</p>
+    </body></html>`;
+    const blob = new Blob([docHtml], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "smeta.doc";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadExcel = () => {
+    const rows = estimateItems.map((r) =>
+      `<tr><td>${r.icon} ${r.name}</td><td>${r.econom || ""}</td><td>${r.premium || ""}</td></tr>`
+    ).join("");
+    const totalMin = totalUserMin || totalExampleMin;
+    const totalMax = totalUserMax || totalExampleMax;
+    const xlsHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"/></head><body>
+      <table>
+        <tr><td colspan="3"><b>Студия декора Эльвиры Даутовой</b></td></tr>
+        <tr><td colspan="3">Гостей: ${guests} чел.</td></tr>
+        <tr><td></td></tr>
+        <tr><th>Услуга</th><th>Эконом (₽)</th><th>Премиум (₽)</th></tr>
+        ${rows}
+        <tr><td><b>Итого</b></td><td><b>${totalMin || ""}</b></td><td><b>${totalMax || ""}</b></td></tr>
+      </table>
+    </body></html>`;
+    const blob = new Blob([xlsHtml], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "smeta.xls";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const buildShareText = () => {
+    const totalMin = totalUserMin || totalExampleMin;
+    const totalMax = totalUserMax || totalExampleMax;
+    const lines = estimateItems.map((r) => `${r.icon} ${r.name}: ${r.econom ? FORMAT(r.econom) : "—"} / ${r.premium ? FORMAT(r.premium) : "—"}`).join("\n");
+    return `Студия декора Эльвиры Даутовой\nСмета торжества (${guests} гостей)\n\n${lines}\n\nИтого: ${totalMin ? FORMAT(totalMin) : "—"} – ${totalMax ? FORMAT(totalMax) : "—"}\n\nСмета ориентировочная, уточняется при встрече.`;
+  };
+
+  const handleShareVk = () => {
+    const text = encodeURIComponent(buildShareText());
+    window.open(`https://vk.com/share.php?comment=${text}`, "_blank");
+  };
+
+  const handleShareTelegram = () => {
+    const text = encodeURIComponent(buildShareText());
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${text}`, "_blank");
+  };
+
+  const handleShareWhatsapp = () => {
+    const text = encodeURIComponent(buildShareText());
+    window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
   const handleSendEmail = async () => {
@@ -195,13 +278,40 @@ export default function WeddingCalculator() {
             <div className="mb-8 p-6" style={{ border: "1px solid rgba(201,169,110,0.2)", background: "rgba(201,169,110,0.03)" }}>
               <div className="flex items-center justify-between mb-4">
                 <span className="font-montserrat text-xs tracking-widest uppercase" style={{ color: "var(--gold)" }}>Количество гостей</span>
-                <span className="font-cormorant text-3xl" style={{ color: "var(--gold)" }}>{guests}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setGuests(g => Math.max(1, g - 1))}
+                    className="w-8 h-8 flex items-center justify-center transition-all duration-200 font-cormorant text-lg"
+                    style={{ border: "1px solid rgba(201,169,110,0.4)", color: "var(--gold)", background: "transparent", lineHeight: 1 }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(201,169,110,0.1)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >−</button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={guests}
+                    onChange={(e) => {
+                      const v = Math.min(500, Math.max(1, Number(e.target.value) || 1));
+                      setGuests(v);
+                    }}
+                    className="bg-transparent outline-none font-cormorant text-3xl text-center"
+                    style={{ color: "var(--gold)", width: "72px", border: "none", MozAppearance: "textfield" } as React.CSSProperties}
+                  />
+                  <button
+                    onClick={() => setGuests(g => Math.min(500, g + 1))}
+                    className="w-8 h-8 flex items-center justify-center transition-all duration-200 font-cormorant text-lg"
+                    style={{ border: "1px solid rgba(201,169,110,0.4)", color: "var(--gold)", background: "transparent", lineHeight: 1 }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(201,169,110,0.1)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >+</button>
+                </div>
               </div>
-              <input type="range" min={10} max={300} step={5} value={guests}
+              <input type="range" min={1} max={500} step={1} value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
                 className="w-full" style={{ accentColor: "var(--gold)", height: "2px", cursor: "pointer" }} />
               <div className="flex justify-between font-montserrat text-xs mt-2" style={{ color: "rgba(245,237,216,0.3)" }}>
-                <span>10</span><span>300</span>
+                <span>1</span><span>500</span>
               </div>
             </div>
 
@@ -372,16 +482,48 @@ export default function WeddingCalculator() {
               {hasAnything && (
                 <>
                   {/* Скачать */}
-                  <button
-                    className="w-full flex items-center justify-center gap-2 py-3 mb-3 font-montserrat text-xs tracking-widest uppercase transition-all duration-200"
-                    style={{ border: "1px solid rgba(201,169,110,0.4)", color: "var(--gold-light)", background: "transparent" }}
-                    onClick={handleDownload}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--gold)"; (e.currentTarget as HTMLElement).style.color = "var(--gold)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,169,110,0.4)"; (e.currentTarget as HTMLElement).style.color = "var(--gold-light)"; }}
-                  >
-                    <Icon name="Download" size={14} />
-                    Скачать смету
-                  </button>
+                  <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.3)" }}>Скачать смету</div>
+                  <div className="flex gap-2 mb-3">
+                    {[
+                      { label: "HTML", onClick: handleDownloadHtml },
+                      { label: "Word", onClick: handleDownloadWord },
+                      { label: "Excel", onClick: handleDownloadExcel },
+                    ].map((btn) => (
+                      <button
+                        key={btn.label}
+                        className="flex-1 flex items-center justify-center gap-1 py-2 font-montserrat text-xs tracking-wider uppercase transition-all duration-200"
+                        style={{ border: "1px solid rgba(201,169,110,0.4)", color: "var(--gold-light)", background: "transparent" }}
+                        onClick={btn.onClick}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--gold)"; (e.currentTarget as HTMLElement).style.color = "var(--gold)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,169,110,0.4)"; (e.currentTarget as HTMLElement).style.color = "var(--gold-light)"; }}
+                      >
+                        <Icon name="Download" size={11} />
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Поделиться */}
+                  <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.3)" }}>Поделиться</div>
+                  <div className="flex gap-2 mb-3">
+                    {[
+                      { label: "ВКонтакте", onClick: handleShareVk },
+                      { label: "Telegram", onClick: handleShareTelegram },
+                      { label: "WhatsApp", onClick: handleShareWhatsapp },
+                    ].map((btn) => (
+                      <button
+                        key={btn.label}
+                        className="flex-1 flex items-center justify-center gap-1 py-2 font-montserrat tracking-wide transition-all duration-200"
+                        style={{ border: "1px solid rgba(201,169,110,0.25)", color: "rgba(245,237,216,0.45)", background: "transparent", fontSize: "0.55rem" }}
+                        onClick={btn.onClick}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,169,110,0.5)"; (e.currentTarget as HTMLElement).style.color = "var(--gold-light)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,169,110,0.25)"; (e.currentTarget as HTMLElement).style.color = "rgba(245,237,216,0.45)"; }}
+                      >
+                        <Icon name="Share2" size={10} />
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
 
                   {/* Email */}
                   <div className="mb-3">

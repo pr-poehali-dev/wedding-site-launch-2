@@ -186,29 +186,36 @@ export default function Index() {
 
       {/* HERO */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Фото пары — основной фон */}
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(https://cdn.poehali.dev/projects/0278d3f1-7899-40bd-960b-c0c391ad5f80/files/f68219e5-c22b-41b7-acfe-18aebd4f03a9.jpg)`,
+            backgroundImage: `url(https://cdn.poehali.dev/projects/0278d3f1-7899-40bd-960b-c0c391ad5f80/bucket/9f81ab62-13f2-42d0-a188-367918d8b62e.png)`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "brightness(0.22)",
+            backgroundPosition: "center top",
+            filter: "brightness(0.35)",
           }}
         />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(201,169,110,0.06) 0%, rgba(13,11,8,0.75) 70%)" }} />
+        {/* Градиент снизу для читаемости текста */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(13,11,8,0.2) 0%, rgba(13,11,8,0.5) 50%, rgba(13,11,8,0.92) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(201,169,110,0.04) 0%, rgba(13,11,8,0.3) 70%)" }} />
 
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
           <div className="font-montserrat text-xs tracking-[0.4em] uppercase mb-8 animate-fade-up" style={{ color: "var(--gold)", opacity: 0, animationFillMode: "forwards" }}>
-            ✦ Свадебное оформление премиум-класса ✦
+            ✦ оформление свадеб ✦ корпоративов ✦ юбилеев ✦
           </div>
           <h1
-            className="font-cormorant mb-6 leading-none animate-fade-up delay-200"
-            style={{ fontSize: "clamp(3.5rem, 9vw, 8rem)", fontWeight: 300, color: "var(--cream)", opacity: 0, animationFillMode: "forwards" }}
+            className="font-cormorant mb-3 leading-none animate-fade-up delay-200"
+            style={{ fontSize: "clamp(2.2rem, 6vw, 5.5rem)", fontWeight: 300, color: "var(--cream)", opacity: 0, animationFillMode: "forwards" }}
           >
-            La Belle
-            <br />
-            <em style={{ color: "var(--gold)" }}>Époque</em>
+            СТУДИЯ ДЕКОРА
           </h1>
+          <h2
+            className="font-cormorant mb-6 animate-fade-up delay-200"
+            style={{ fontSize: "clamp(1.6rem, 4.5vw, 4rem)", fontWeight: 300, color: "var(--gold)", opacity: 0, animationFillMode: "forwards" }}
+          >
+            <em>ЭЛЬВИРЫ ДАУТОВОЙ</em>
+          </h2>
           <div className="gold-divider max-w-xs mx-auto mb-8 animate-fade-up delay-300" style={{ opacity: 0, animationFillMode: "forwards" }} />
           <p
             className="font-montserrat text-sm leading-relaxed mx-auto mb-12 animate-fade-up delay-400"
