@@ -55,11 +55,6 @@ const CATEGORIES = [
 const FORMAT = (n: number) =>
   n.toLocaleString("ru-RU", { maximumFractionDigits: 0 }) + " ₽";
 
-const parseNum = (s: string) => {
-  const n = parseInt(s.replace(/\D/g, ""), 10);
-  return isNaN(n) ? 0 : n;
-};
-
 type Prices = Record<string, { min: string; max: string }>;
 
 export default function WeddingCalculator() {
@@ -67,8 +62,8 @@ export default function WeddingCalculator() {
   const [guests, setGuests] = useState(50);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const getVal = (item: Item, key: "min" | "max"): string =>
-    prices[item.id]?.[key] ?? "";
+  const getVal = (id: string, key: "min" | "max"): string =>
+    prices[id]?.[key] ?? "";
 
   const setVal = (id: string, key: "min" | "max", val: string) => {
     setPrices((prev) => ({
@@ -77,31 +72,31 @@ export default function WeddingCalculator() {
     }));
   };
 
-  const getNumericVal = (item: Item, key: "min" | "max"): number => {
-    const raw = getVal(item, key);
-    if (raw !== "") return parseNum(raw);
-    return 0;
+  const mult = (item: Item) => item.id === "menu" ? guests : 1;
+
+  // Пример (placeholder): всегда defaultMin и defaultMax
+  const exampleMin = (item: Item) => item.defaultMin * mult(item);
+  const exampleMax = (item: Item) => item.defaultMax * mult(item);
+
+  // Введённые пользователем
+  const userMin = (item: Item) => {
+    const v = getVal(item.id, "min");
+    return v !== "" ? parseInt(v, 10) * mult(item) : 0;
+  };
+  const userMax = (item: Item) => {
+    const v = getVal(item.id, "max");
+    return v !== "" ? parseInt(v, 10) * mult(item) : 0;
   };
 
-  const isActive = (item: Item) => {
-    const minVal = getVal(item, "min");
-    const maxVal = getVal(item, "max");
-    return minVal !== "" || maxVal !== "";
-  };
+  // Итоги по всем позициям (пример всегда считается)
+  const totalExampleMin = ITEMS.reduce((s, i) => s + exampleMin(i), 0);
+  const totalExampleMax = ITEMS.reduce((s, i) => s + exampleMax(i), 0);
 
-  const getItemMin = (item: Item) => {
-    const v = getNumericVal(item, "min");
-    return item.id === "menu" ? v * guests : v;
-  };
-
-  const getItemMax = (item: Item) => {
-    const v = getNumericVal(item, "max");
-    return item.id === "menu" ? v * guests : v;
-  };
-
-  const activeItems = ITEMS.filter(isActive);
-  const totalMin = activeItems.reduce((s, i) => s + getItemMin(i), 0);
-  const totalMax = activeItems.reduce((s, i) => s + getItemMax(i), 0);
+  // Пользовательские итоги считаются только по позициям где введено хоть что-то
+  const hasAnyMin = ITEMS.some((i) => getVal(i.id, "min") !== "");
+  const hasAnyMax = ITEMS.some((i) => getVal(i.id, "max") !== "");
+  const totalUserMin = ITEMS.reduce((s, i) => s + userMin(i), 0);
+  const totalUserMax = ITEMS.reduce((s, i) => s + userMax(i), 0);
 
   const visibleItems = activeCategory
     ? ITEMS.filter((i) => i.category === activeCategory)
@@ -121,7 +116,7 @@ export default function WeddingCalculator() {
           </h2>
           <div className="gold-divider max-w-xs mx-auto mb-6" />
           <p className="font-montserrat text-sm" style={{ color: "rgba(245,237,216,0.45)" }}>
-            Введите стоимость услуг — укажите минимальную и максимальную цену для каждой позиции
+            Серые цифры — пример для расчёта. Введите свои цены, чтобы сравнить эконом и премиум вариант
           </p>
         </div>
 
@@ -150,7 +145,7 @@ export default function WeddingCalculator() {
 
             {/* Category tabs */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {[{ id: null, label: "Все", icon: "" }, ...CATEGORIES.map(c => ({ id: c.id as string | null, label: c.label, icon: c.icon }))].map((c) => {
+              {[{ id: null as string | null, label: "Все", icon: "" }, ...CATEGORIES.map(c => ({ ...c, id: c.id as string | null }))].map((c) => {
                 const active = activeCategory === c.id;
                 return (
                   <button
@@ -170,22 +165,26 @@ export default function WeddingCalculator() {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-6 mb-5">
+            <div className="flex items-center gap-6 mb-5 flex-wrap">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ background: "rgba(201,169,110,0.35)" }} />
-                <span className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.4)" }}>Эконом цена</span>
+                <div className="w-2 h-2 rounded-full" style={{ background: "rgba(245,237,216,0.2)" }} />
+                <span className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.35)" }}>Пример</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ background: "var(--gold)" }} />
-                <span className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.4)" }}>Премиум цена</span>
+                <div className="w-2 h-2 rounded-full" style={{ background: "rgba(201,169,110,0.7)" }} />
+                <span className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.35)" }}>Ваш эконом</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: "var(--gold)" }} />
+                <span className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.35)" }}>Ваш премиум</span>
               </div>
             </div>
 
             {/* Items grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {visibleItems.map((item) => {
-                const minVal = getVal(item, "min");
-                const maxVal = getVal(item, "max");
+                const minVal = getVal(item.id, "min");
+                const maxVal = getVal(item.id, "max");
                 const hasMin = minVal !== "";
                 const hasMax = maxVal !== "";
                 const active = hasMin || hasMax;
@@ -195,35 +194,30 @@ export default function WeddingCalculator() {
                     key={item.id}
                     className="p-3 transition-all duration-300"
                     style={{
-                      border: active
-                        ? "1px solid rgba(201,169,110,0.5)"
-                        : "1px solid rgba(201,169,110,0.1)",
-                      background: active
-                        ? "rgba(201,169,110,0.06)"
-                        : "rgba(201,169,110,0.02)",
+                      border: active ? "1px solid rgba(201,169,110,0.45)" : "1px solid rgba(201,169,110,0.1)",
+                      background: active ? "rgba(201,169,110,0.06)" : "rgba(201,169,110,0.02)",
                     }}
                   >
-                    <div className="text-xl mb-2">{item.icon}</div>
-                    <div
-                      className="font-montserrat leading-tight mb-3"
-                      style={{
-                        fontSize: "0.68rem",
-                        color: active ? "var(--cream)" : "rgba(245,237,216,0.5)",
-                      }}
-                    >
+                    <div className="text-xl mb-1">{item.icon}</div>
+                    <div className="font-montserrat leading-tight mb-3" style={{ fontSize: "0.65rem", color: active ? "var(--cream)" : "rgba(245,237,216,0.45)" }}>
                       {item.name}
-                      {item.id === "menu" && (
-                        <span style={{ color: "var(--gold)" }}> ×{guests}</span>
-                      )}
+                      {item.id === "menu" && <span style={{ color: "var(--gold)" }}> ×{guests}</span>}
                     </div>
 
-                    {/* Min price input */}
+                    {/* Пример row */}
+                    <div className="flex gap-1 mb-2 items-center">
+                      <span className="font-montserrat text-[8px] tracking-wide uppercase w-10 flex-shrink-0" style={{ color: "rgba(245,237,216,0.2)" }}>пример</span>
+                      <span className="font-cormorant text-xs" style={{ color: "rgba(245,237,216,0.18)" }}>
+                        {item.defaultMin === item.defaultMax
+                          ? item.defaultMin.toLocaleString("ru-RU")
+                          : `${item.defaultMin.toLocaleString("ru-RU")} – ${item.defaultMax.toLocaleString("ru-RU")}`}
+                      </span>
+                    </div>
+
+                    {/* Эконом input */}
                     <div className="mb-2">
-                      <div
-                        className="font-montserrat text-[9px] tracking-widest uppercase mb-1"
-                        style={{ color: hasMin ? "rgba(201,169,110,0.6)" : "rgba(245,237,216,0.2)" }}
-                      >
-                        Эконом
+                      <div className="font-montserrat text-[8px] tracking-wide uppercase mb-1" style={{ color: hasMin ? "rgba(201,169,110,0.7)" : "rgba(245,237,216,0.18)" }}>
+                        эконом
                       </div>
                       <input
                         type="text"
@@ -233,25 +227,20 @@ export default function WeddingCalculator() {
                         onChange={(e) => setVal(item.id, "min", e.target.value.replace(/\D/g, ""))}
                         className="w-full bg-transparent outline-none font-cormorant transition-all duration-200"
                         style={{
-                          fontSize: "1rem",
-                          borderBottom: hasMin
-                            ? "1px solid rgba(201,169,110,0.6)"
-                            : "1px solid rgba(201,169,110,0.15)",
-                          color: hasMin ? "var(--gold-light)" : "rgba(245,237,216,0.15)",
+                          fontSize: "0.95rem",
+                          borderBottom: hasMin ? "1px solid rgba(201,169,110,0.6)" : "1px solid rgba(201,169,110,0.12)",
+                          color: hasMin ? "rgba(232,213,163,0.9)" : "rgba(245,237,216,0.12)",
                           paddingBottom: "2px",
                         }}
-                        onFocus={(e) => (e.target.style.borderBottomColor = "var(--gold)")}
-                        onBlur={(e) => (e.target.style.borderBottomColor = hasMin ? "rgba(201,169,110,0.6)" : "rgba(201,169,110,0.15)")}
+                        onFocus={(e) => (e.target.style.borderBottomColor = "rgba(201,169,110,0.9)")}
+                        onBlur={(e) => (e.target.style.borderBottomColor = hasMin ? "rgba(201,169,110,0.6)" : "rgba(201,169,110,0.12)")}
                       />
                     </div>
 
-                    {/* Max price input */}
+                    {/* Премиум input */}
                     <div>
-                      <div
-                        className="font-montserrat text-[9px] tracking-widest uppercase mb-1"
-                        style={{ color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.2)" }}
-                      >
-                        Премиум
+                      <div className="font-montserrat text-[8px] tracking-wide uppercase mb-1" style={{ color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.18)" }}>
+                        премиум
                       </div>
                       <input
                         type="text"
@@ -261,15 +250,13 @@ export default function WeddingCalculator() {
                         onChange={(e) => setVal(item.id, "max", e.target.value.replace(/\D/g, ""))}
                         className="w-full bg-transparent outline-none font-cormorant transition-all duration-200"
                         style={{
-                          fontSize: "1rem",
-                          borderBottom: hasMax
-                            ? "1px solid var(--gold)"
-                            : "1px solid rgba(201,169,110,0.15)",
-                          color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.15)",
+                          fontSize: "0.95rem",
+                          borderBottom: hasMax ? "1px solid var(--gold)" : "1px solid rgba(201,169,110,0.12)",
+                          color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.12)",
                           paddingBottom: "2px",
                         }}
                         onFocus={(e) => (e.target.style.borderBottomColor = "var(--gold-light)")}
-                        onBlur={(e) => (e.target.style.borderBottomColor = hasMax ? "var(--gold)" : "rgba(201,169,110,0.15)")}
+                        onBlur={(e) => (e.target.style.borderBottomColor = hasMax ? "var(--gold)" : "rgba(201,169,110,0.12)")}
                       />
                     </div>
                   </div>
@@ -280,118 +267,110 @@ export default function WeddingCalculator() {
 
           {/* Right: summary */}
           <div className="lg:col-span-1">
-            <div
-              className="sticky top-24 p-8"
-              style={{ border: "1px solid rgba(201,169,110,0.3)", background: "rgba(13,11,8,0.95)" }}
-            >
-              <div
-                className="font-montserrat text-xs tracking-[0.3em] uppercase mb-6 pb-4"
-                style={{ color: "var(--gold)", borderBottom: "1px solid rgba(201,169,110,0.15)" }}
-              >
-                Ваша смета
+            <div className="sticky top-24 p-8" style={{ border: "1px solid rgba(201,169,110,0.3)", background: "rgba(13,11,8,0.95)" }}>
+              <div className="font-montserrat text-xs tracking-[0.3em] uppercase mb-6 pb-4" style={{ color: "var(--gold)", borderBottom: "1px solid rgba(201,169,110,0.15)" }}>
+                Сравнение бюджетов
               </div>
 
-              {/* Items list */}
+              {/* Three columns comparison */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                {[
+                  { label: "Пример", colorLabel: "rgba(245,237,216,0.3)", min: totalExampleMin, max: totalExampleMax, colorVal: "rgba(245,237,216,0.35)", show: true },
+                  { label: "Эконом", colorLabel: "rgba(201,169,110,0.8)", min: totalUserMin, max: null, colorVal: "rgba(232,213,163,0.9)", show: hasAnyMin },
+                  { label: "Премиум", colorLabel: "var(--gold)", min: null, max: totalUserMax, colorVal: "var(--gold)", show: hasAnyMax },
+                ].map((col, i) => (
+                  <div key={i} className="text-center p-3" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
+                    <div className="font-montserrat text-[9px] tracking-widest uppercase mb-3" style={{ color: col.colorLabel }}>
+                      {col.label}
+                    </div>
+                    {col.show ? (
+                      <>
+                        {col.min !== null && (
+                          <div className="font-cormorant text-sm mb-1" style={{ color: col.colorVal }}>
+                            {FORMAT(col.min)}
+                          </div>
+                        )}
+                        {col.max !== null && col.min !== col.max && (
+                          <div className="font-cormorant text-sm" style={{ color: col.colorVal }}>
+                            {FORMAT(col.max)}
+                          </div>
+                        )}
+                        {col.min !== null && col.max !== null && col.min === col.max && (
+                          <div className="font-cormorant text-sm" style={{ color: col.colorVal }}>
+                            {FORMAT(col.min)}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.15)" }}>
+                        —
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Detailed list */}
+              <div className="font-montserrat text-[9px] tracking-widest uppercase mb-3" style={{ color: "rgba(245,237,216,0.25)" }}>
+                Детализация
+              </div>
               <div
-                className="mb-6 space-y-3 max-h-72 overflow-y-auto pr-1"
+                className="mb-6 space-y-2 max-h-56 overflow-y-auto pr-1"
                 style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(201,169,110,0.3) transparent" }}
               >
-                {activeItems.length === 0 ? (
-                  <div className="font-montserrat text-xs text-center py-8" style={{ color: "rgba(245,237,216,0.2)" }}>
-                    Введите цены для<br />нужных услуг
-                  </div>
-                ) : (
-                  activeItems.map((item) => {
-                    const minV = getItemMin(item);
-                    const maxV = getItemMax(item);
-                    return (
-                      <div key={item.id} className="flex items-start gap-2">
-                        <span className="text-sm flex-shrink-0 mt-0.5">{item.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-montserrat truncate" style={{ fontSize: "0.65rem", color: "rgba(245,237,216,0.55)" }}>
-                            {item.name}{item.id === "menu" ? ` ×${guests}` : ""}
-                          </div>
-                          <div className="flex gap-2 mt-0.5">
-                            {minV > 0 && (
-                              <span className="font-cormorant text-sm" style={{ color: "rgba(201,169,110,0.7)" }}>
-                                {FORMAT(minV)}
-                              </span>
-                            )}
-                            {minV > 0 && maxV > 0 && (
-                              <span style={{ color: "rgba(245,237,216,0.2)", fontSize: "0.75rem" }}>—</span>
-                            )}
-                            {maxV > 0 && (
-                              <span className="font-cormorant text-sm" style={{ color: "var(--gold)" }}>
-                                {FORMAT(maxV)}
-                              </span>
-                            )}
-                          </div>
+                {ITEMS.map((item) => {
+                  const minV = getVal(item.id, "min");
+                  const maxV = getVal(item.id, "max");
+                  if (minV === "" && maxV === "") return null;
+                  return (
+                    <div key={item.id} className="flex items-start gap-2">
+                      <span className="text-xs flex-shrink-0 mt-0.5">{item.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-montserrat truncate" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.4)" }}>
+                          {item.name}{item.id === "menu" ? ` ×${guests}` : ""}
+                        </div>
+                        <div className="flex gap-2">
+                          {minV !== "" && (
+                            <span className="font-cormorant text-xs" style={{ color: "rgba(201,169,110,0.7)" }}>
+                              {FORMAT(parseInt(minV, 10) * mult(item))}
+                            </span>
+                          )}
+                          {minV !== "" && maxV !== "" && <span style={{ color: "rgba(245,237,216,0.2)", fontSize: "0.6rem" }}>|</span>}
+                          {maxV !== "" && (
+                            <span className="font-cormorant text-xs" style={{ color: "var(--gold)" }}>
+                              {FORMAT(parseInt(maxV, 10) * mult(item))}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    );
-                  })
+                    </div>
+                  );
+                })}
+                {!hasAnyMin && !hasAnyMax && (
+                  <div className="font-montserrat text-xs text-center py-4" style={{ color: "rgba(245,237,216,0.15)" }}>
+                    Введите цены для сравнения
+                  </div>
                 )}
               </div>
 
-              {activeItems.length > 0 && (
-                <>
-                  <div className="gold-divider mb-5" />
+              <div className="gold-divider mb-5" />
 
-                  {/* Totals */}
-                  <div className="space-y-3 mb-6">
-                    {totalMin > 0 && (
-                      <div className="flex justify-between items-baseline">
-                        <span className="font-montserrat text-xs tracking-widest uppercase" style={{ color: "rgba(245,237,216,0.35)" }}>
-                          Эконом итог
-                        </span>
-                        <span className="font-cormorant text-xl" style={{ color: "rgba(201,169,110,0.8)" }}>
-                          {FORMAT(totalMin)}
-                        </span>
-                      </div>
-                    )}
-                    {totalMax > 0 && (
-                      <div className="flex justify-between items-baseline">
-                        <span className="font-montserrat text-xs tracking-widest uppercase" style={{ color: "rgba(245,237,216,0.35)" }}>
-                          Премиум итог
-                        </span>
-                        <span className="font-cormorant text-2xl" style={{ color: "var(--gold)" }}>
-                          {FORMAT(totalMax)}
-                        </span>
-                      </div>
-                    )}
-                    {totalMin > 0 && totalMax > 0 && totalMin !== totalMax && (
-                      <div
-                        className="pt-3 text-center"
-                        style={{ borderTop: "1px solid rgba(201,169,110,0.1)" }}
-                      >
-                        <div className="font-montserrat text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(245,237,216,0.3)" }}>
-                          Диапазон
-                        </div>
-                        <div className="font-cormorant text-base" style={{ color: "rgba(245,237,216,0.5)" }}>
-                          {FORMAT(totalMin)} — {FORMAT(totalMax)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              <button
+                className="gold-btn w-full py-4 relative mb-3"
+                onClick={() => document.getElementById("contacts")?.scrollIntoView({ behavior: "smooth" })}
+              >
+                <span>Получить расчёт</span>
+              </button>
 
-                  <button
-                    className="gold-btn w-full py-4 relative mb-3"
-                    onClick={() => document.getElementById("contacts")?.scrollIntoView({ behavior: "smooth" })}
-                  >
-                    <span>Получить расчёт</span>
-                  </button>
-
-                  <button
-                    className="w-full font-montserrat text-xs tracking-widest uppercase py-2 transition-all"
-                    style={{ color: "rgba(245,237,216,0.25)" }}
-                    onClick={() => setPrices({})}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(245,237,216,0.5)")}
-                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(245,237,216,0.25)")}
-                  >
-                    Сбросить всё
-                  </button>
-                </>
-              )}
+              <button
+                className="w-full font-montserrat text-xs tracking-widest uppercase py-2 transition-all"
+                style={{ color: "rgba(245,237,216,0.2)" }}
+                onClick={() => setPrices({})}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(245,237,216,0.5)")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(245,237,216,0.2)")}
+              >
+                Сбросить
+              </button>
             </div>
           </div>
 
