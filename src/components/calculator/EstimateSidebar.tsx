@@ -231,12 +231,12 @@ export default function EstimateSidebar({
             <div className="font-montserrat text-xs text-center py-3" style={{ color: "rgba(245,237,216,0.15)" }}>Отметьте позиции галочкой</div>
           ) : estimateItems.map((item, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="flex-shrink-0 mt-0.5"><Icon name={item.icon} size={11} style={{ color: "rgba(201,169,110,0.5)" }} /></span>
+              <span className="flex-shrink-0 mt-0.5"><Icon name={item.icon} size={11} style={{ color: "rgba(201,169,110,0.8)" }} /></span>
               <div className="flex-1 min-w-0">
-                <div className="font-montserrat truncate" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.4)" }}>{item.name}</div>
+                <div className="font-montserrat truncate" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.85)" }}>{item.name}</div>
                 <div className="flex gap-2">
-                  {item.econom > 0 && <span className="font-cormorant text-xs" style={{ color: "rgba(201,169,110,0.7)" }}>{FORMAT(item.econom)}</span>}
-                  {item.econom > 0 && item.premium > 0 && <span style={{ color: "rgba(245,237,216,0.2)", fontSize: "0.6rem" }}>|</span>}
+                  {item.econom > 0 && <span className="font-cormorant text-xs" style={{ color: "rgba(201,169,110,0.9)" }}>{FORMAT(item.econom)}</span>}
+                  {item.econom > 0 && item.premium > 0 && <span style={{ color: "rgba(245,237,216,0.3)", fontSize: "0.6rem" }}>|</span>}
                   {item.premium > 0 && <span className="font-cormorant text-xs" style={{ color: "var(--gold)" }}>{FORMAT(item.premium)}</span>}
                 </div>
               </div>
