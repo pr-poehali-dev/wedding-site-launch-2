@@ -1,3 +1,4 @@
+import Icon from "@/components/ui/icon";
 import { Item, Prices, CATEGORIES } from "./types";
 
 type ItemsGridProps = {
@@ -29,13 +30,14 @@ export default function ItemsGrid({
     <>
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 mb-5">
-        {[{ id: null as string | null, label: "Все", icon: "" }, ...CATEGORIES.map(c => ({ ...c, id: c.id as string | null }))].map((c) => {
+        {[{ id: null as string | null, label: "Все", icon: "LayoutGrid" }, ...CATEGORIES.map(c => ({ ...c, id: c.id as string | null }))].map((c) => {
           const active = activeCategory === c.id;
           return (
             <button key={String(c.id)} onClick={() => setActiveCategory(c.id)}
-              className="px-4 py-2 font-montserrat text-xs tracking-widest uppercase transition-all duration-200"
+              className="px-4 py-2 font-montserrat text-xs tracking-widest uppercase transition-all duration-200 flex items-center gap-2"
               style={{ background: active ? "var(--gold)" : "transparent", color: active ? "var(--velvet)" : "rgba(245,237,216,0.5)", border: active ? "1px solid var(--gold)" : "1px solid rgba(201,169,110,0.2)" }}>
-              {c.icon} {c.label}
+              <Icon name={c.icon} size={12} />
+              {c.label}
             </button>
           );
         })}
@@ -83,7 +85,9 @@ export default function ItemsGrid({
                 {isChecked && <span style={{ color: "var(--velvet)", fontSize: "10px", fontWeight: 700, lineHeight: 1 }}>✓</span>}
               </button>
 
-              <div className="text-xl mb-1 pr-6">{item.icon}</div>
+              <div className="mb-2 pr-6">
+                <Icon name={item.icon} size={16} style={{ color: active ? "var(--gold)" : "rgba(201,169,110,0.35)" }} />
+              </div>
               <div className="font-montserrat leading-tight mb-2 pr-2" style={{ fontSize: "0.65rem", color: active ? "var(--cream)" : "rgba(245,237,216,0.45)" }}>
                 {item.name}{item.id === "menu" && <span style={{ color: "var(--gold)" }}> ×{guests}</span>}
               </div>
