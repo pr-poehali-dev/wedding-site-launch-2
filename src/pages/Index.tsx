@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import WeddingCalculator from "@/components/WeddingCalculator";
 
 const GALLERY_IMAGES = [
   {
@@ -93,6 +94,7 @@ const NAV = [
   { id: "home", label: "Главная" },
   { id: "portfolio", label: "Портфолио" },
   { id: "services", label: "Услуги" },
+  { id: "calculator", label: "Калькулятор" },
   { id: "about", label: "О нас" },
   { id: "reviews", label: "Отзывы" },
   { id: "contacts", label: "Контакты" },
@@ -372,6 +374,8 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      <WeddingCalculator />
 
       {/* ABOUT */}
       <section id="about" className="py-24 px-6">
