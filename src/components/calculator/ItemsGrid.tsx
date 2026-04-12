@@ -115,7 +115,7 @@ export default function ItemsGrid({
                 </div>
                 <div className="px-1 py-1">
                   <div className="font-montserrat text-[7px] uppercase mb-0.5" style={{ color: hasMin ? "rgba(201,169,110,0.7)" : "rgba(245,237,216,0.18)" }}>Эконом</div>
-                  <input type="text" inputMode="numeric" placeholder={item.defaultMin.toLocaleString("ru-RU")} value={minVal}
+                  <input type="text" inputMode="numeric" placeholder="" value={minVal}
                     onChange={(e) => setVal(item.id, "min", e.target.value.replace(/\D/g, ""))}
                     className="w-full bg-transparent outline-none font-cormorant transition-all duration-200"
                     style={{ fontSize: "0.85rem", borderBottom: hasMin ? "1px solid rgba(201,169,110,0.6)" : "1px solid rgba(201,169,110,0.12)", color: hasMin ? "rgba(232,213,163,0.9)" : "rgba(245,237,216,0.12)", paddingBottom: "1px" }}
@@ -134,7 +134,7 @@ export default function ItemsGrid({
                 </div>
                 <div className="px-1 py-1">
                   <div className="font-montserrat text-[7px] uppercase mb-0.5" style={{ color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.18)" }}>Премиум</div>
-                  <input type="text" inputMode="numeric" placeholder={item.defaultMax.toLocaleString("ru-RU")} value={maxVal}
+                  <input type="text" inputMode="numeric" placeholder="" value={maxVal}
                     onChange={(e) => setVal(item.id, "max", e.target.value.replace(/\D/g, ""))}
                     className="w-full bg-transparent outline-none font-cormorant transition-all duration-200"
                     style={{ fontSize: "0.85rem", borderBottom: hasMax ? "1px solid var(--gold)" : "1px solid rgba(201,169,110,0.12)", color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.12)", paddingBottom: "1px" }}
