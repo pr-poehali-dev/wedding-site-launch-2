@@ -12,6 +12,10 @@ export type Prices = Record<string, { min: string; max: string }>;
 export type EstimateRow = {
   icon: string;
   name: string;
+  exampleEconom: number;
+  examplePremium: number;
+  userEconom: number;
+  userPremium: number;
   econom: number;
   premium: number;
 };

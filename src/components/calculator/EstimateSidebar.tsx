@@ -240,23 +240,51 @@ export default function EstimateSidebar({
 
         {/* Детализация */}
         <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.2)" }}>Детализация</div>
-        <div className="mb-5 space-y-2 max-h-44 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(201,169,110,0.3) transparent" }}>
-          {estimateItems.length === 0 ? (
-            <div className="font-montserrat text-xs text-center py-3" style={{ color: "rgba(245,237,216,0.15)" }}>Отметьте позиции галочкой</div>
-          ) : estimateItems.map((item, i) => (
-            <div key={i} className="flex items-start gap-2">
-              <span className="flex-shrink-0 mt-0.5"><Icon name={item.icon} size={11} style={{ color: "rgba(201,169,110,0.8)" }} /></span>
-              <div className="flex-1 min-w-0">
-                <div className="font-montserrat truncate" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.85)" }}>{item.name}</div>
-                <div className="flex gap-2">
-                  {item.econom > 0 && <span className="font-cormorant text-xs" style={{ color: "rgba(201,169,110,0.9)" }}>{FORMAT(item.econom)}</span>}
-                  {item.econom > 0 && item.premium > 0 && <span style={{ color: "rgba(245,237,216,0.3)", fontSize: "0.6rem" }}>|</span>}
-                  {item.premium > 0 && <span className="font-cormorant text-xs" style={{ color: "var(--gold)" }}>{FORMAT(item.premium)}</span>}
-                </div>
-              </div>
+
+        {estimateItems.length === 0 ? (
+          <div className="font-montserrat text-xs text-center py-3 mb-5" style={{ color: "rgba(245,237,216,0.15)" }}>Отметьте позиции галочкой</div>
+        ) : (
+          <div className="mb-5 max-h-64 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(201,169,110,0.3) transparent" }}>
+            {/* Шапка колонок */}
+            <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 mb-1 pb-1" style={{ borderBottom: "1px solid rgba(201,169,110,0.1)" }}>
+              <div />
+              <div className="font-montserrat text-[7px] uppercase tracking-widest text-center w-14" style={{ color: "rgba(245,237,216,0.2)" }}>Пример</div>
+              <div className="font-montserrat text-[7px] uppercase tracking-widest text-center w-14" style={{ color: "rgba(201,169,110,0.5)" }}>Мой расчёт</div>
             </div>
-          ))}
-        </div>
+
+            {/* Строки позиций */}
+            <div className="space-y-1">
+              {estimateItems.map((item, i) => (
+                <div key={i}>
+                  {/* Название */}
+                  <div className="flex items-center gap-1 mb-0.5 mt-1">
+                    <Icon name={item.icon} size={9} style={{ color: "rgba(201,169,110,0.6)", flexShrink: 0 }} />
+                    <span className="font-montserrat truncate" style={{ fontSize: "0.58rem", color: "rgba(245,237,216,0.7)" }}>{item.name}</span>
+                  </div>
+                  {/* Эконом / Премиум в двух колонках */}
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-x-2">
+                    <div className="font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.25)" }}>Эконом</div>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: "rgba(245,237,216,0.3)" }}>
+                      {item.exampleEconom > 0 ? FORMAT(item.exampleEconom) : "—"}
+                    </div>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: item.userEconom > 0 ? "rgba(232,213,163,0.9)" : "rgba(245,237,216,0.2)" }}>
+                      {item.userEconom > 0 ? FORMAT(item.userEconom) : "—"}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-x-2">
+                    <div className="font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.25)" }}>Премиум</div>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: "rgba(245,237,216,0.3)" }}>
+                      {item.examplePremium > 0 ? FORMAT(item.examplePremium) : "—"}
+                    </div>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: item.userPremium > 0 ? "var(--gold)" : "rgba(245,237,216,0.2)" }}>
+                      {item.userPremium > 0 ? FORMAT(item.userPremium) : "—"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="gold-divider mb-5" />
 

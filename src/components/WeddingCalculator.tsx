@@ -37,12 +37,22 @@ export default function WeddingCalculator() {
 
   const estimateItems = ITEMS
     .filter((i) => checked.has(i.id) || getVal(i.id, "min") !== "" || getVal(i.id, "max") !== "")
-    .map((i) => ({
-      icon: i.icon,
-      name: i.name + (i.id === "menu" ? ` ×${guests}` : ""),
-      econom: getVal(i.id, "min") ? parseInt(getVal(i.id, "min")) * mult(i) : (checked.has(i.id) ? i.defaultMin * mult(i) : 0),
-      premium: getVal(i.id, "max") ? parseInt(getVal(i.id, "max")) * mult(i) : (checked.has(i.id) ? i.defaultMax * mult(i) : 0),
-    }));
+    .map((i) => {
+      const exEconom = checked.has(i.id) ? i.defaultMin * mult(i) : 0;
+      const exPremium = checked.has(i.id) ? i.defaultMax * mult(i) : 0;
+      const usEconom = getVal(i.id, "min") ? parseInt(getVal(i.id, "min")) * mult(i) : 0;
+      const usPremium = getVal(i.id, "max") ? parseInt(getVal(i.id, "max")) * mult(i) : 0;
+      return {
+        icon: i.icon,
+        name: i.name + (i.id === "menu" ? ` ×${guests}` : ""),
+        exampleEconom: exEconom,
+        examplePremium: exPremium,
+        userEconom: usEconom,
+        userPremium: usPremium,
+        econom: usEconom || exEconom,
+        premium: usPremium || exPremium,
+      };
+    });
 
   const hasAnything = checked.size > 0 || hasAnyMin || hasAnyMax;
 
