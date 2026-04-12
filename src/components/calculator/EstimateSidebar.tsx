@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { EstimateRow, FORMAT, SEND_ESTIMATE_URL } from "./types";
 
@@ -182,8 +181,6 @@ export default function EstimateSidebar({
     }
   };
 
-  const [activeTab, setActiveTab] = useState<"example" | "mine">("example");
-
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-24 p-8" style={{ border: "1px solid rgba(201,169,110,0.3)", background: "rgba(13,11,8,0.95)" }}>
@@ -191,80 +188,55 @@ export default function EstimateSidebar({
           Сравнение бюджетов
         </div>
 
-        {/* Табы */}
-        <div className="grid grid-cols-2 gap-2 mb-5">
-          {(["example", "mine"] as const).map((tab) => {
-            const isActive = activeTab === tab;
-            const label = tab === "example" ? "Пример" : "Мой расчёт";
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className="font-montserrat text-[9px] tracking-widest uppercase py-3 transition-all duration-200"
-                style={{
-                  border: "1px solid",
-                  borderColor: isActive ? "var(--gold)" : "rgba(201,169,110,0.2)",
-                  color: isActive ? "var(--velvet)" : "rgba(245,237,216,0.4)",
-                  background: isActive ? "var(--gold)" : "transparent",
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
+        {/* Две колонки: Пример и Мой расчёт */}
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          {/* Заголовки-кнопки */}
+          <div className="text-center py-2 font-montserrat text-[9px] tracking-widest uppercase"
+            style={{ border: "1px solid rgba(201,169,110,0.25)", color: "rgba(245,237,216,0.4)", background: "transparent" }}>
+            Пример
+          </div>
+          <div className="text-center py-2 font-montserrat text-[9px] tracking-widest uppercase"
+            style={{ border: "1px solid var(--gold)", color: "var(--velvet)", background: "var(--gold)" }}>
+            Мой расчёт
+          </div>
         </div>
 
-        {/* Содержимое таба */}
-        {activeTab === "example" ? (
-          <div className="mb-5">
-            {checked.size > 0 ? (
-              <>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="text-center p-3" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.1)" }}>
-                    <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.3)" }}>Эконом</div>
-                    <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.5)" }}>{FORMAT(totalExampleMin)}</div>
-                  </div>
-                  <div className="text-center p-3" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.1)" }}>
-                    <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.3)" }}>Премиум</div>
-                    <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.5)" }}>{FORMAT(totalExampleMax)}</div>
-                  </div>
-                </div>
-                <div className="font-montserrat text-center" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.2)" }}>{checked.size} позиций — базовые цены</div>
-              </>
-            ) : (
-              <div className="font-montserrat text-xs text-center py-6" style={{ color: "rgba(245,237,216,0.15)" }}>Отметьте позиции галочкой</div>
-            )}
+        {/* Строка Эконом */}
+        <div className="grid grid-cols-2 gap-2 mb-1">
+          <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.25)", textTransform: "uppercase" }}>Эконом</div>
+            {checked.size > 0
+              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.45)" }}>{FORMAT(totalExampleMin)}</div>
+              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
           </div>
-        ) : (
-          <div className="mb-5">
-            {hasAnyMin || hasAnyMax ? (
-              <>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="text-center p-3" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.15)" }}>
-                    <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(201,169,110,0.6)" }}>Эконом</div>
-                    {hasAnyMin
-                      ? <div className="font-cormorant text-sm" style={{ color: "rgba(232,213,163,0.9)" }}>{FORMAT(totalUserMin)}</div>
-                      : <div className="font-montserrat text-xs py-1" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
-                  </div>
-                  <div className="text-center p-3" style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.25)" }}>
-                    <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "var(--gold)" }}>Премиум</div>
-                    {hasAnyMax
-                      ? <div className="font-cormorant text-sm" style={{ color: "var(--gold)" }}>{FORMAT(totalUserMax)}</div>
-                      : <div className="font-montserrat text-xs py-1" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
-                  </div>
-                </div>
-                {hasAnyMin && hasAnyMax && (
-                  <div className="p-3 text-center" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.1)" }}>
-                    <div className="font-montserrat text-[9px] tracking-widest uppercase mb-1" style={{ color: "rgba(245,237,216,0.25)" }}>Разница</div>
-                    <div className="font-cormorant text-base" style={{ color: "var(--gold-light)" }}>{FORMAT(totalUserMax - totalUserMin)}</div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="font-montserrat text-xs text-center py-6" style={{ color: "rgba(245,237,216,0.15)" }}>Задайте свои цены в позициях</div>
-            )}
+          <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.12)" }}>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.55)", textTransform: "uppercase" }}>Эконом</div>
+            {hasAnyMin
+              ? <div className="font-cormorant text-sm" style={{ color: "rgba(232,213,163,0.9)" }}>{FORMAT(totalUserMin)}</div>
+              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
           </div>
-        )}
+        </div>
+
+        {/* Строка Премиум */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.25)", textTransform: "uppercase" }}>Премиум</div>
+            {checked.size > 0
+              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.45)" }}>{FORMAT(totalExampleMax)}</div>
+              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
+          </div>
+          <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "var(--gold)", textTransform: "uppercase" }}>Премиум</div>
+            {hasAnyMax
+              ? <div className="font-cormorant text-sm" style={{ color: "var(--gold)" }}>{FORMAT(totalUserMax)}</div>
+              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
+          </div>
+        </div>
+
+        {/* Подпись */}
+        <div className="font-montserrat text-center mb-5" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.2)", letterSpacing: "0.1em" }}>
+          {checked.size > 0 ? `${checked.size} позиций — базовые цены` : "Отметьте позиции галочкой"}
+        </div>
 
         {/* Детализация */}
         <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.2)" }}>Детализация</div>
