@@ -32,8 +32,10 @@ export default function WeddingCalculator() {
   const totalExampleMax = checkedItems.reduce((s, i) => s + i.defaultMax * mult(i), 0);
   const hasAnyMin = ITEMS.some((i) => getVal(i.id, "min") !== "");
   const hasAnyMax = ITEMS.some((i) => getVal(i.id, "max") !== "");
-  const totalUserMin = ITEMS.reduce((s, i) => s + userMin(i), 0);
-  const totalUserMax = ITEMS.reduce((s, i) => s + userMax(i), 0);
+  const itemsWithMin = ITEMS.filter((i) => getVal(i.id, "min") !== "");
+  const itemsWithMax = ITEMS.filter((i) => getVal(i.id, "max") !== "");
+  const totalUserMin = itemsWithMin.reduce((s, i) => s + userMin(i), 0);
+  const totalUserMax = itemsWithMax.reduce((s, i) => s + userMax(i), 0);
 
   const estimateItems = ITEMS
     .filter((i) => checked.has(i.id) || getVal(i.id, "min") !== "" || getVal(i.id, "max") !== "")
