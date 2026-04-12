@@ -38,15 +38,16 @@ export default function EstimateSidebar({
 }: EstimateSidebarProps) {
 
   const buildHtmlContent = () => {
-    const rows = estimateItems.map((r) =>
+    const myItems = estimateItems.filter(r => r.userEconom > 0 || r.userPremium > 0);
+    const rows = myItems.map((r) =>
       `<tr>
         <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#e8d9b5;">${r.icon} ${r.name}</td>
-        <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#c9a84c;text-align:right;">${r.econom ? FORMAT(r.econom) : "—"}</td>
-        <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#f0c96a;text-align:right;">${r.premium ? FORMAT(r.premium) : "—"}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#c9a84c;text-align:right;">${r.userEconom ? FORMAT(r.userEconom) : "—"}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #2a2218;color:#f0c96a;text-align:right;">${r.userPremium ? FORMAT(r.userPremium) : "—"}</td>
       </tr>`
     ).join("");
     return `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"/>
-    <title>Смета — Студия декора Эльвиры Даутовой</title>
+    <title>Моя смета — Студия декора Эльвиры Даутовой</title>
     <style>
       body{margin:0;padding:32px;background:#0d0b08;font-family:Georgia,serif;color:#e8d9b5;}
       h1{color:#f0c96a;font-weight:normal;letter-spacing:2px;margin:0 0 4px;}
@@ -61,15 +62,15 @@ export default function EstimateSidebar({
     </style></head><body>
     <div style="color:#c9a84c;letter-spacing:6px;margin-bottom:16px;">✦ &nbsp; ✦ &nbsp; ✦</div>
     <h1>Студия декора Эльвиры Даутовой</h1>
-    <p class="sub">Смета торжества</p>
+    <p class="sub">Моя смета</p>
     <p style="color:#9c8050;font-size:13px;margin:0 0 16px;">Гостей: <span style="color:#e8d9b5;">${guests} чел.</span></p>
     <table>
       <thead><tr><th>Услуга</th><th>Эконом</th><th>Премиум</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot class="total"><tr>
         <td>Итого</td>
-        <td style="color:#c9a84c;">${totalUserMin || totalExampleMin ? FORMAT(totalUserMin || totalExampleMin) : "—"}</td>
-        <td style="color:#f0c96a;">${totalUserMax || totalExampleMax ? FORMAT(totalUserMax || totalExampleMax) : "—"}</td>
+        <td style="color:#c9a84c;">${totalUserMin ? FORMAT(totalUserMin) : "—"}</td>
+        <td style="color:#f0c96a;">${totalUserMax ? FORMAT(totalUserMax) : "—"}</td>
       </tr></tfoot>
     </table>
     <p class="footer">Смета носит ориентировочный характер и уточняется при личной встрече.</p>
@@ -77,10 +78,9 @@ export default function EstimateSidebar({
   };
 
   const buildShareText = () => {
-    const totalMin = totalUserMin || totalExampleMin;
-    const totalMax = totalUserMax || totalExampleMax;
-    const lines = estimateItems.map((r) => `${r.icon} ${r.name}: ${r.econom ? FORMAT(r.econom) : "—"} / ${r.premium ? FORMAT(r.premium) : "—"}`).join("\n");
-    return `Студия декора Эльвиры Даутовой\nСмета торжества (${guests} гостей)\n\n${lines}\n\nИтого: ${totalMin ? FORMAT(totalMin) : "—"} – ${totalMax ? FORMAT(totalMax) : "—"}\n\nСмета ориентировочная, уточняется при встрече.`;
+    const myItems = estimateItems.filter(r => r.userEconom > 0 || r.userPremium > 0);
+    const lines = myItems.map((r) => `${r.icon} ${r.name}: ${r.userEconom ? FORMAT(r.userEconom) : "—"} / ${r.userPremium ? FORMAT(r.userPremium) : "—"}`).join("\n");
+    return `Студия декора Эльвиры Даутовой\nМоя смета (${guests} гостей)\n\n${lines}\n\nИтого: ${totalUserMin ? FORMAT(totalUserMin) : "—"} – ${totalUserMax ? FORMAT(totalUserMax) : "—"}\n\nСмета ориентировочная, уточняется при встрече.`;
   };
 
   const handleDownloadHtml = () => {
@@ -89,24 +89,23 @@ export default function EstimateSidebar({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "smeta.html";
+    a.download = "moya-smeta.html";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleDownloadWord = () => {
-    const rows = estimateItems.map((r) =>
-      `<tr><td>${r.icon} ${r.name}</td><td>${r.econom ? FORMAT(r.econom) : "—"}</td><td>${r.premium ? FORMAT(r.premium) : "—"}</td></tr>`
+    const myItems = estimateItems.filter(r => r.userEconom > 0 || r.userPremium > 0);
+    const rows = myItems.map((r) =>
+      `<tr><td>${r.icon} ${r.name}</td><td>${r.userEconom ? FORMAT(r.userEconom) : "—"}</td><td>${r.userPremium ? FORMAT(r.userPremium) : "—"}</td></tr>`
     ).join("");
-    const totalMin = totalUserMin || totalExampleMin;
-    const totalMax = totalUserMax || totalExampleMax;
-    const docHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="UTF-8"/><title>Смета</title></head><body>
+    const docHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="UTF-8"/><title>Моя смета</title></head><body>
       <h1 style="color:#8B6914;font-family:Georgia,serif;">Студия декора Эльвиры Даутовой</h1>
       <p style="font-family:Georgia,serif;color:#555;">Гостей: ${guests} чел.</p>
       <table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:Georgia,serif;">
         <thead><tr style="background:#f5edd0;"><th>Услуга</th><th>Эконом</th><th>Премиум</th></tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr style="background:#f5edd0;font-weight:bold;"><td>Итого</td><td>${totalMin ? FORMAT(totalMin) : "—"}</td><td>${totalMax ? FORMAT(totalMax) : "—"}</td></tr></tfoot>
+        <tfoot><tr style="background:#f5edd0;font-weight:bold;"><td>Итого</td><td>${totalUserMin ? FORMAT(totalUserMin) : "—"}</td><td>${totalUserMax ? FORMAT(totalUserMax) : "—"}</td></tr></tfoot>
       </table>
       <p style="font-family:Georgia,serif;color:#999;font-style:italic;margin-top:16px;">Смета носит ориентировочный характер и уточняется при личной встрече.</p>
     </body></html>`;
@@ -114,17 +113,16 @@ export default function EstimateSidebar({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "smeta.doc";
+    a.download = "moya-smeta.doc";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleDownloadExcel = () => {
-    const rows = estimateItems.map((r) =>
-      `<tr><td>${r.icon} ${r.name}</td><td>${r.econom || ""}</td><td>${r.premium || ""}</td></tr>`
+    const myItems = estimateItems.filter(r => r.userEconom > 0 || r.userPremium > 0);
+    const rows = myItems.map((r) =>
+      `<tr><td>${r.icon} ${r.name}</td><td>${r.userEconom || ""}</td><td>${r.userPremium || ""}</td></tr>`
     ).join("");
-    const totalMin = totalUserMin || totalExampleMin;
-    const totalMax = totalUserMax || totalExampleMax;
     const xlsHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"/></head><body>
       <table>
         <tr><td colspan="3"><b>Студия декора Эльвиры Даутовой</b></td></tr>
@@ -132,14 +130,14 @@ export default function EstimateSidebar({
         <tr><td></td></tr>
         <tr><th>Услуга</th><th>Эконом (₽)</th><th>Премиум (₽)</th></tr>
         ${rows}
-        <tr><td><b>Итого</b></td><td><b>${totalMin || ""}</b></td><td><b>${totalMax || ""}</b></td></tr>
+        <tr><td><b>Итого</b></td><td><b>${totalUserMin || ""}</b></td><td><b>${totalUserMax || ""}</b></td></tr>
       </table>
     </body></html>`;
     const blob = new Blob([xlsHtml], { type: "application/vnd.ms-excel" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "smeta.xls";
+    a.download = "moya-smeta.xls";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -369,45 +367,38 @@ export default function EstimateSidebar({
           </>
         )}
 
-        {estimateItems.length > 0 && (
+        {estimateItems.some(i => i.userEconom > 0 || i.userPremium > 0) && (
           <>
             <div className="gold-divider mb-4 mt-2" />
-            <div className="font-montserrat text-[9px] tracking-widest uppercase mb-3" style={{ color: "rgba(245,237,216,0.3)" }}>Полная детализация</div>
+            <div className="font-montserrat text-[9px] tracking-widest uppercase mb-3" style={{ color: "rgba(201,169,110,0.6)" }}>Моя детализация</div>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
                     <th className="font-montserrat text-left pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.3)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)", paddingRight: 6 }}>Позиция</th>
-                    <th className="font-montserrat text-right pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.3)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)", paddingRight: 6 }}>Пример</th>
                     <th className="font-montserrat text-right pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.7)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)", paddingRight: 6 }}>Эконом</th>
                     <th className="font-montserrat text-right pb-2" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "var(--gold)", fontWeight: 400, borderBottom: "1px solid rgba(201,169,110,0.1)" }}>Премиум</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {estimateItems.map((item, i) => (
+                  {estimateItems.filter(i => i.userEconom > 0 || i.userPremium > 0).map((item, i) => (
                     <tr key={i} style={{ borderBottom: "1px solid rgba(201,169,110,0.06)" }}>
                       <td className="py-1.5 font-montserrat" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.75)", paddingRight: 6 }}>
                         <span className="flex items-center gap-1">
                           <Icon name={item.icon} size={9} style={{ color: "rgba(201,169,110,0.6)", flexShrink: 0 }} />
-                          <span className="truncate" style={{ maxWidth: 70 }}>{item.name}</span>
+                          <span className="truncate" style={{ maxWidth: 80 }}>{item.name}</span>
                         </span>
                       </td>
-                      <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "rgba(245,237,216,0.35)", paddingRight: 6, whiteSpace: "nowrap" }}>
-                        {item.econom ? FORMAT(item.econom) : "—"}
-                      </td>
                       <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "rgba(201,169,110,0.85)", paddingRight: 6, whiteSpace: "nowrap" }}>
-                        {item.econom ? FORMAT(item.econom) : "—"}
+                        {item.userEconom > 0 ? FORMAT(item.userEconom) : "—"}
                       </td>
                       <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "var(--gold)", whiteSpace: "nowrap" }}>
-                        {item.premium ? FORMAT(item.premium) : "—"}
+                        {item.userPremium > 0 ? FORMAT(item.userPremium) : "—"}
                       </td>
                     </tr>
                   ))}
                   <tr style={{ borderTop: "1px solid rgba(201,169,110,0.2)" }}>
                     <td className="pt-2 font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.4)", letterSpacing: "0.1em" }}>ИТОГО</td>
-                    <td className="pt-2 font-cormorant text-right" style={{ fontSize: "0.75rem", color: "rgba(245,237,216,0.35)", paddingRight: 6, whiteSpace: "nowrap" }}>
-                      {totalExampleMin ? FORMAT(totalExampleMin) : "—"}
-                    </td>
                     <td className="pt-2 font-cormorant text-right" style={{ fontSize: "0.75rem", color: "rgba(201,169,110,0.9)", paddingRight: 6, whiteSpace: "nowrap" }}>
                       {totalUserMin ? FORMAT(totalUserMin) : "—"}
                     </td>
