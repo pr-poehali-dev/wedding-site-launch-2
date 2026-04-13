@@ -1,25 +1,63 @@
 import Icon from "@/components/ui/icon";
 import { TableItem, TableShape } from "../SeatingEditor";
-import { TABLE_COLORS } from "./tableShapes";
+import { TABLE_COLORS, HallShape, HALL_PRESETS } from "./tableShapes";
 
 interface EditorLeftSidebarProps {
   selectedTable: TableItem | null;
+  hallShape: HallShape;
   onAddTable: (shape: TableShape) => void;
   onUpdateSelected: (patch: Partial<TableItem>) => void;
   onDeleteSelected: () => void;
+  onHallShapeChange: (shape: HallShape) => void;
 }
+
+const HALL_SHAPE_ICONS: Record<HallShape, string> = {
+  "square": "Square",
+  "rect-h": "RectangleHorizontal",
+  "rect-v": "RectangleVertical",
+};
 
 export default function EditorLeftSidebar({
   selectedTable,
+  hallShape,
   onAddTable,
   onUpdateSelected,
   onDeleteSelected,
+  onHallShapeChange,
 }: EditorLeftSidebarProps) {
   return (
     <div
       className="w-52 flex-shrink-0 flex flex-col gap-2 p-3 border-r overflow-y-auto"
       style={{ borderColor: "#c9a96e20", background: "#0d0b08" }}
     >
+      {/* Hall shape */}
+      <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--gold)" }}>
+        Форма зала
+      </p>
+      <div className="flex gap-1.5">
+        {HALL_PRESETS.map((preset) => (
+          <button
+            key={preset.shape}
+            title={preset.label}
+            onClick={() => onHallShapeChange(preset.shape)}
+            className="flex-1 flex flex-col items-center gap-1 py-2 rounded text-xs transition-all hover:opacity-80"
+            style={{
+              background: hallShape === preset.shape ? "#2a2010" : "#1a160f",
+              border: `1px solid ${hallShape === preset.shape ? "#c9a96e" : "#c9a96e30"}`,
+              color: hallShape === preset.shape ? "var(--gold)" : "#c9a96e60",
+            }}
+          >
+            <Icon name={HALL_SHAPE_ICONS[preset.shape]} size={16} />
+          </button>
+        ))}
+      </div>
+      <p className="text-xs -mt-1" style={{ color: "#c9a96e60" }}>
+        {HALL_PRESETS.find((p) => p.shape === hallShape)?.label}
+      </p>
+
+      <div className="gold-divider my-1" />
+
+      {/* Add table */}
       <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--gold)" }}>
         Добавить стол
       </p>
@@ -51,7 +89,7 @@ export default function EditorLeftSidebar({
         <>
           <div className="gold-divider mt-3 mb-2" />
           <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--gold)" }}>
-            Настройки
+            Настройки стола
           </p>
 
           <label className="text-xs mb-0.5" style={{ color: "#c9a96e80" }}>

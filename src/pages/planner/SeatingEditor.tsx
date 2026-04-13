@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { RoundTable, RectTable, OvalTable, generateId, HALL_W, HALL_H, GRID_SIZE, TABLE_COLORS } from "./seating-editor/tableShapes";
+import { RoundTable, RectTable, OvalTable, generateId, GRID_SIZE, TABLE_COLORS, HallShape, HALL_PRESETS } from "./seating-editor/tableShapes";
 import EditorLeftSidebar from "./seating-editor/EditorLeftSidebar";
 import EditorRightSidebar from "./seating-editor/EditorRightSidebar";
 
@@ -34,6 +34,7 @@ interface SeatingEditorProps {
   guests: GuestItem[];
   onUpdateTables: (tables: TableItem[]) => void;
   onSeatGuest: (guestId: string, tableId: string | null) => void;
+  onOpenGuests?: () => void;
   sessionId: string | null;
   planId: string;
 }
@@ -44,6 +45,7 @@ export default function SeatingEditor({
   guests,
   onUpdateTables,
   onSeatGuest,
+  onOpenGuests,
   sessionId,
   planId,
 }: SeatingEditorProps) {
@@ -59,7 +61,12 @@ export default function SeatingEditor({
   const [guestSearch, setGuestSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [hallShape, setHallShape] = useState<HallShape>("rect-h");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hallPreset = HALL_PRESETS.find((p) => p.shape === hallShape) ?? HALL_PRESETS[1];
+  const HALL_W = hallPreset.w;
+  const HALL_H = hallPreset.h;
 
   const selectedTable = tables.find((t) => t.id === selectedId) ?? null;
 
@@ -75,7 +82,7 @@ export default function SeatingEditor({
         y: (clientY - rect.top) * scaleY,
       };
     },
-    []
+    [HALL_W, HALL_H]
   );
 
   const scheduleSave = useCallback(
@@ -127,7 +134,7 @@ export default function SeatingEditor({
         )
       );
     },
-    [dragging, tables, onUpdateTables, getSvgPoint]
+    [dragging, tables, onUpdateTables, getSvgPoint, HALL_W, HALL_H]
   );
 
   const handleSvgMouseUp = useCallback(() => {
@@ -150,8 +157,8 @@ export default function SeatingEditor({
         shape,
         label: `Стол ${tables.length + 1}`,
         seats: shape === "row" ? 10 : 6,
-        x: 150 + Math.random() * 500,
-        y: 100 + Math.random() * 350,
+        x: 150 + Math.random() * (HALL_W - 300),
+        y: 100 + Math.random() * (HALL_H - 200),
         color: TABLE_COLORS[0].value,
       };
       const updated = [...tables, newTable];
@@ -159,7 +166,7 @@ export default function SeatingEditor({
       setSelectedId(newTable.id);
       scheduleSave(updated);
     },
-    [tables, onUpdateTables, scheduleSave]
+    [tables, onUpdateTables, scheduleSave, HALL_W, HALL_H]
   );
 
   const updateSelected = useCallback(
@@ -242,7 +249,7 @@ export default function SeatingEditor({
       a.click();
     };
     img.src = url;
-  }, [plan.title]);
+  }, [plan.title, HALL_W, HALL_H]);
 
   // Render grid lines
   const gridLines: React.ReactNode[] = [];
@@ -262,6 +269,8 @@ export default function SeatingEditor({
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, []);
+
+  const unassignedCount = guests.filter((g) => !g.tableId).length;
 
   return (
     <div
@@ -287,6 +296,30 @@ export default function SeatingEditor({
             Сохранено
           </span>
         )}
+        {/* Guests button — prominent, near tables */}
+        {onOpenGuests && (
+          <button
+            onClick={onOpenGuests}
+            className="flex items-center gap-2 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-90"
+            style={{
+              background: "var(--gold)",
+              color: "var(--velvet)",
+              fontWeight: 700,
+              boxShadow: "0 0 10px #c9a96e50",
+            }}
+          >
+            <Icon name="Users" size={13} />
+            <span>Гости</span>
+            {unassignedCount > 0 && (
+              <span
+                className="flex items-center justify-center w-4 h-4 rounded-full text-xs"
+                style={{ background: "#c97070", color: "#fff", fontWeight: 700, fontSize: 10 }}
+              >
+                {unassignedCount}
+              </span>
+            )}
+          </button>
+        )}
         <button
           onClick={downloadPng}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
@@ -300,9 +333,11 @@ export default function SeatingEditor({
       <div className="flex flex-1 overflow-hidden">
         <EditorLeftSidebar
           selectedTable={selectedTable}
+          hallShape={hallShape}
           onAddTable={addTable}
           onUpdateSelected={updateSelected}
           onDeleteSelected={deleteSelected}
+          onHallShapeChange={setHallShape}
         />
 
         {/* Canvas */}

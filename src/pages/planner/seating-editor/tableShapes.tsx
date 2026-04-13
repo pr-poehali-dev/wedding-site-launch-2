@@ -11,6 +11,20 @@ export const GRID_SIZE = 50;
 export const HALL_W = 900;
 export const HALL_H = 620;
 
+export type HallShape = "square" | "rect-h" | "rect-v";
+
+export interface HallSize {
+  shape: HallShape;
+  w: number;
+  h: number;
+}
+
+export const HALL_PRESETS: { shape: HallShape; label: string; w: number; h: number }[] = [
+  { shape: "square", label: "Квадратный", w: 700, h: 700 },
+  { shape: "rect-h", label: "Горизонтальный", w: 900, h: 500 },
+  { shape: "rect-v", label: "Вертикальный", w: 550, h: 800 },
+];
+
 export function generateId() {
   return Math.random().toString(36).slice(2, 10);
 }
