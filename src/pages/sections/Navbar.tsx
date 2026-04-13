@@ -10,6 +10,8 @@ const NAV = [
   { id: "contacts", label: "Контакты" },
 ];
 
+const PLANNER_LINK = "/planner";
+
 type NavbarProps = {
   scrolled: boolean;
   activeNav: string;
@@ -46,6 +48,12 @@ export default function Navbar({ scrolled, activeNav, menuOpen, setMenuOpen, scr
               {n.label}
             </button>
           ))}
+          <a href={PLANNER_LINK}
+            className="font-montserrat text-xs uppercase tracking-widest px-3 py-1.5 transition-all duration-300 flex items-center gap-1.5"
+            style={{ border: "1px solid rgba(201,169,110,0.4)", color: "var(--gold)" }}>
+            <Icon name="Layout" size={11} />
+            Планировщик
+          </a>
         </div>
         <button className="md:hidden" style={{ color: "var(--gold)" }} onClick={() => setMenuOpen(!menuOpen)}>
           <Icon name={menuOpen ? "X" : "Menu"} size={22} />
@@ -58,6 +66,9 @@ export default function Navbar({ scrolled, activeNav, menuOpen, setMenuOpen, scr
               {n.label}
             </button>
           ))}
+          <a href={PLANNER_LINK} className="font-montserrat text-xs tracking-widest uppercase flex items-center gap-2" style={{ color: "var(--gold)" }}>
+            <Icon name="Layout" size={12} /> Планировщик
+          </a>
         </div>
       )}
     </nav>

@@ -1,3 +1,6 @@
 {
+  "planner-guests": "https://functions.poehali.dev/5a8e58c4-106e-46da-8f0c-84e078f2432c",
+  "planner-auth": "https://functions.poehali.dev/73ade7c7-8c7b-45b3-a620-d27d7a2995fe",
+  "planner-plans": "https://functions.poehali.dev/8192888d-d171-4174-9179-bae0a5946737",
   "send-estimate": "https://functions.poehali.dev/e9f41fef-c047-4cd3-ab99-becbe1197f36"
 }
