@@ -88,10 +88,12 @@ export default function AddGuestForm({
   // Parsed bulk preview for editing before adding
   const [parsedGuests, setParsedGuests] = useState<ParsedGuest[] | null>(null);
 
+  const voiceSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
   const startVoice = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      setVoiceError("Голосовой ввод не поддерживается в этом браузере");
+      setVoiceError("Голосовой ввод работает только в браузере Chrome или Edge");
       return;
     }
     setVoiceError(null);
@@ -104,13 +106,25 @@ export default function AddGuestForm({
       onAddNameChange(addName ? addName + " " + transcript : transcript);
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
-      setVoiceError("Ошибка: " + e.error);
+      if (e.error === "not-allowed") {
+        setVoiceError("Нет доступа к микрофону — разрешите его в настройках браузера");
+      } else if (e.error === "no-speech") {
+        setVoiceError("Ничего не услышано, попробуйте ещё раз");
+      } else if (e.error === "network") {
+        setVoiceError("Ошибка сети — проверьте интернет-соединение");
+      } else {
+        setVoiceError("Ошибка распознавания: " + e.error);
+      }
       setIsListening(false);
     };
     rec.onend = () => setIsListening(false);
     recognitionRef.current = rec;
-    rec.start();
-    setIsListening(true);
+    try {
+      rec.start();
+      setIsListening(true);
+    } catch {
+      setVoiceError("Не удалось запустить микрофон — попробуйте ещё раз");
+    }
   }, [addName, onAddNameChange]);
 
   const stopVoice = useCallback(() => {
@@ -200,20 +214,37 @@ export default function AddGuestForm({
             onChange={(e) => onAddNameChange(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onAddGuest()}
           />
-          {/* Voice button */}
-          <button
-            type="button"
-            onClick={isListening ? stopVoice : startVoice}
-            title={isListening ? "Остановить запись" : "Надиктовать имя"}
-            className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded transition-all hover:opacity-80"
-            style={{
-              background: isListening ? "#3a1a0a" : "#1a160f",
-              border: `1px solid ${isListening ? "#c97040" : "#c9a96e30"}`,
-              color: isListening ? "#e09060" : "#c9a96e80",
-            }}
-          >
-            <Icon name={isListening ? "MicOff" : "Mic"} size={14} />
-          </button>
+          {/* Voice button — only Chrome/Edge */}
+          {voiceSupported ? (
+            <button
+              type="button"
+              onClick={isListening ? stopVoice : startVoice}
+              title={isListening ? "Остановить запись" : "Надиктовать имя (Chrome/Edge)"}
+              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded transition-all hover:opacity-80"
+              style={{
+                background: isListening ? "#3a1a0a" : "#1a160f",
+                border: `1px solid ${isListening ? "#c97040" : "#c9a96e30"}`,
+                color: isListening ? "#e09060" : "#c9a96e80",
+              }}
+            >
+              <Icon name={isListening ? "MicOff" : "Mic"} size={14} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="Голосовой ввод доступен только в Chrome и Edge"
+              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded"
+              style={{
+                background: "#1a160f",
+                border: "1px solid #c9a96e15",
+                color: "#c9a96e30",
+                cursor: "not-allowed",
+              }}
+            >
+              <Icon name="MicOff" size={14} />
+            </button>
+          )}
         </div>
         <input
           className="sm:w-40 px-3 py-2 rounded text-sm"
