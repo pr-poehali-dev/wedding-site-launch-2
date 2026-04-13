@@ -1,5 +1,8 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import { RoundTable, RectTable, OvalTable, generateId, HALL_W, HALL_H, GRID_SIZE, TABLE_COLORS } from "./seating-editor/tableShapes";
+import EditorLeftSidebar from "./seating-editor/EditorLeftSidebar";
+import EditorRightSidebar from "./seating-editor/EditorRightSidebar";
 
 const PLANS_API = "https://functions.poehali.dev/8192888d-d171-4174-9179-bae0a5946737";
 const GUESTS_API = "https://functions.poehali.dev/5a8e58c4-106e-46da-8f0c-84e078f2432c";
@@ -33,198 +36,6 @@ interface SeatingEditorProps {
   onSeatGuest: (guestId: string, tableId: string | null) => void;
   sessionId: string | null;
   planId: string;
-}
-
-const TABLE_COLORS = [
-  { label: "Золото", value: "#c9a96e" },
-  { label: "Розовый", value: "#c9788a" },
-  { label: "Синий", value: "#6e8fc9" },
-  { label: "Зелёный", value: "#7ab87a" },
-];
-
-const GRID_SIZE = 50;
-const HALL_W = 900;
-const HALL_H = 620;
-
-function generateId() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-function getTableDimensions(shape: TableShape, seats: number) {
-  switch (shape) {
-    case "round":
-      return { r: Math.max(32, 20 + seats * 4) };
-    case "oval":
-      return { rx: Math.max(55, 30 + seats * 4), ry: Math.max(32, 18 + seats * 2) };
-    case "rect":
-      return { w: Math.max(80, 40 + seats * 12), h: 52 };
-    case "row":
-      return { w: Math.max(100, seats * 22), h: 28 };
-    default:
-      return {};
-  }
-}
-
-function RoundTable({
-  table,
-  selected,
-  dragOver,
-}: {
-  table: TableItem;
-  selected: boolean;
-  dragOver: boolean;
-}) {
-  const { r } = getTableDimensions("round", table.seats) as { r: number };
-  const seatDots: { cx: number; cy: number }[] = [];
-  for (let i = 0; i < table.seats; i++) {
-    const angle = (2 * Math.PI * i) / table.seats - Math.PI / 2;
-    seatDots.push({
-      cx: Math.cos(angle) * (r + 10),
-      cy: Math.sin(angle) * (r + 10),
-    });
-  }
-  return (
-    <>
-      <circle
-        cx={0}
-        cy={0}
-        r={r + 12}
-        fill="transparent"
-        stroke={dragOver ? "#e8d5a3" : "transparent"}
-        strokeWidth={dragOver ? 2 : 0}
-        strokeDasharray="4 3"
-      />
-      {seatDots.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-      ))}
-      <circle
-        cx={0}
-        cy={0}
-        r={r}
-        fill="#1a160f"
-        stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
-        strokeWidth={selected ? 2.5 : 1.5}
-      />
-      <text
-        x={0}
-        y={0}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={11}
-        fontFamily="Montserrat, sans-serif"
-        fill="#f5edd8"
-        style={{ pointerEvents: "none", userSelect: "none" }}
-      >
-        {table.label.slice(0, 8)}
-      </text>
-    </>
-  );
-}
-
-function RectTable({
-  table,
-  selected,
-  dragOver,
-  isRow,
-}: {
-  table: TableItem;
-  selected: boolean;
-  dragOver: boolean;
-  isRow?: boolean;
-}) {
-  const dims = getTableDimensions(table.shape, table.seats) as { w: number; h: number };
-  const { w, h } = dims;
-  const seatCount = table.seats;
-  const seatsTop: number[] = [];
-  const seatsBottom: number[] = [];
-  if (!isRow) {
-    const perSide = Math.ceil(seatCount / 2);
-    for (let i = 0; i < perSide; i++) seatsTop.push((i + 1) * (w / (perSide + 1)) - w / 2);
-    for (let i = 0; i < seatCount - perSide; i++)
-      seatsBottom.push((i + 1) * (w / (seatCount - perSide + 1)) - w / 2);
-  }
-  return (
-    <>
-      {!isRow &&
-        seatsTop.map((sx, i) => (
-          <circle key={`t${i}`} cx={sx} cy={-h / 2 - 10} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-        ))}
-      {!isRow &&
-        seatsBottom.map((sx, i) => (
-          <circle key={`b${i}`} cx={sx} cy={h / 2 + 10} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-        ))}
-      <rect
-        x={-w / 2}
-        y={-h / 2}
-        width={w}
-        height={h}
-        rx={isRow ? 3 : 6}
-        fill="#1a160f"
-        stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
-        strokeWidth={selected ? 2.5 : 1.5}
-      />
-      <text
-        x={0}
-        y={0}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={isRow ? 9 : 11}
-        fontFamily="Montserrat, sans-serif"
-        fill="#f5edd8"
-        style={{ pointerEvents: "none", userSelect: "none" }}
-      >
-        {table.label.slice(0, isRow ? 12 : 10)}
-      </text>
-    </>
-  );
-}
-
-function OvalTable({
-  table,
-  selected,
-  dragOver,
-}: {
-  table: TableItem;
-  selected: boolean;
-  dragOver: boolean;
-}) {
-  const { rx, ry } = getTableDimensions("oval", table.seats) as { rx: number; ry: number };
-  const seatDots: { cx: number; cy: number }[] = [];
-  for (let i = 0; i < table.seats; i++) {
-    const angle = (2 * Math.PI * i) / table.seats - Math.PI / 2;
-    seatDots.push({
-      cx: Math.cos(angle) * (rx + 10),
-      cy: Math.sin(angle) * (ry + 10),
-    });
-  }
-  return (
-    <>
-      {seatDots.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-      ))}
-      <ellipse
-        cx={0}
-        cy={0}
-        rx={rx}
-        ry={ry}
-        fill="#1a160f"
-        stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
-        strokeWidth={selected ? 2.5 : 1.5}
-      />
-      <text
-        x={0}
-        y={0}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={11}
-        fontFamily="Montserrat, sans-serif"
-        fill="#f5edd8"
-        style={{ pointerEvents: "none", userSelect: "none" }}
-      >
-        {table.label.slice(0, 10)}
-      </text>
-    </>
-  );
 }
 
 export default function SeatingEditor({
@@ -433,12 +244,6 @@ export default function SeatingEditor({
     img.src = url;
   }, [plan.title]);
 
-  const filteredGuests = guests.filter((g) =>
-    g.name.toLowerCase().includes(guestSearch.toLowerCase())
-  );
-
-  const seatedGuestIds = new Set(guests.filter((g) => g.tableId).map((g) => g.id));
-
   // Render grid lines
   const gridLines: React.ReactNode[] = [];
   for (let x = 0; x <= HALL_W; x += GRID_SIZE) {
@@ -493,119 +298,12 @@ export default function SeatingEditor({
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <div
-          className="w-52 flex-shrink-0 flex flex-col gap-2 p-3 border-r overflow-y-auto"
-          style={{ borderColor: "#c9a96e20", background: "#0d0b08" }}
-        >
-          <p
-            className="text-xs uppercase tracking-widest mb-1"
-            style={{ color: "var(--gold)" }}
-          >
-            Добавить стол
-          </p>
-
-          {(
-            [
-              { shape: "round" as TableShape, label: "Круглый", icon: "Circle" },
-              { shape: "rect" as TableShape, label: "Прямоугольный", icon: "Square" },
-              { shape: "oval" as TableShape, label: "Овальный", icon: "Ellipsis" },
-              { shape: "row" as TableShape, label: "Ряд (церемония)", icon: "AlignLeft" },
-            ]
-          ).map(({ shape, label, icon }) => (
-            <button
-              key={shape}
-              onClick={() => addTable(shape)}
-              className="flex items-center gap-2 px-3 py-2 rounded text-left text-xs transition-all hover:opacity-80"
-              style={{
-                background: "#1a160f",
-                border: "1px solid #c9a96e30",
-                color: "var(--cream)",
-              }}
-            >
-              <Icon name={icon} size={13} style={{ color: "var(--gold)" }} />
-              {label}
-            </button>
-          ))}
-
-          {selectedTable && (
-            <>
-              <div className="gold-divider mt-3 mb-2" />
-              <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--gold)" }}>
-                Настройки
-              </p>
-
-              <label className="text-xs mb-0.5" style={{ color: "#c9a96e80" }}>
-                Название
-              </label>
-              <input
-                className="w-full px-2 py-1 rounded text-xs"
-                style={{
-                  background: "#1a160f",
-                  border: "1px solid #c9a96e30",
-                  color: "var(--cream)",
-                  outline: "none",
-                }}
-                value={selectedTable.label}
-                onChange={(e) => updateSelected({ label: e.target.value })}
-                maxLength={20}
-              />
-
-              <label className="text-xs mt-1 mb-0.5" style={{ color: "#c9a96e80" }}>
-                Мест
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  className="w-7 h-7 rounded flex items-center justify-center text-sm transition-all hover:opacity-80"
-                  style={{ background: "#1a160f", border: "1px solid #c9a96e30", color: "var(--gold)" }}
-                  onClick={() => updateSelected({ seats: Math.max(1, selectedTable.seats - 1) })}
-                >
-                  −
-                </button>
-                <span className="text-sm w-6 text-center">{selectedTable.seats}</span>
-                <button
-                  className="w-7 h-7 rounded flex items-center justify-center text-sm transition-all hover:opacity-80"
-                  style={{ background: "#1a160f", border: "1px solid #c9a96e30", color: "var(--gold)" }}
-                  onClick={() => updateSelected({ seats: Math.min(30, selectedTable.seats + 1) })}
-                >
-                  +
-                </button>
-              </div>
-
-              <label className="text-xs mt-1 mb-1" style={{ color: "#c9a96e80" }}>
-                Цвет
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                {TABLE_COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    title={c.label}
-                    onClick={() => updateSelected({ color: c.value })}
-                    className="w-6 h-6 rounded-full border-2 transition-all"
-                    style={{
-                      background: c.value,
-                      borderColor:
-                        selectedTable.color === c.value ? "#f5edd8" : "transparent",
-                    }}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={deleteSelected}
-                className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
-                style={{
-                  background: "#2a0e0e",
-                  border: "1px solid #7a2020",
-                  color: "#e07070",
-                }}
-              >
-                <Icon name="Trash2" size={12} />
-                Удалить стол
-              </button>
-            </>
-          )}
-        </div>
+        <EditorLeftSidebar
+          selectedTable={selectedTable}
+          onAddTable={addTable}
+          onUpdateSelected={updateSelected}
+          onDeleteSelected={deleteSelected}
+        />
 
         {/* Canvas */}
         <div className="flex-1 flex items-start justify-center overflow-auto p-4">
@@ -685,70 +383,14 @@ export default function SeatingEditor({
           </svg>
         </div>
 
-        {/* Right Sidebar — Guests */}
-        <div
-          className="w-52 flex-shrink-0 flex flex-col gap-2 p-3 border-l overflow-y-auto"
-          style={{ borderColor: "#c9a96e20", background: "#0d0b08" }}
-        >
-          <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--gold)" }}>
-            Гости
-          </p>
-
-          <input
-            className="w-full px-2 py-1 rounded text-xs mb-1"
-            style={{
-              background: "#1a160f",
-              border: "1px solid #c9a96e30",
-              color: "var(--cream)",
-              outline: "none",
-            }}
-            placeholder="Поиск гостей..."
-            value={guestSearch}
-            onChange={(e) => setGuestSearch(e.target.value)}
-          />
-
-          <div className="flex flex-col gap-1">
-            {filteredGuests.length === 0 && (
-              <p className="text-xs text-center py-4" style={{ color: "#c9a96e50" }}>
-                Нет гостей
-              </p>
-            )}
-            {filteredGuests.map((guest) => {
-              const assignedTable = tables.find((t) => t.id === guest.tableId);
-              return (
-                <div
-                  key={guest.id}
-                  draggable
-                  onDragStart={() => handleGuestDragStart(guest.id)}
-                  onDragEnd={() => setDraggingGuest(null)}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded cursor-grab active:cursor-grabbing transition-all hover:opacity-80"
-                  style={{
-                    background: seatedGuestIds.has(guest.id) ? "#1a1d12" : "#1a160f",
-                    border: `1px solid ${seatedGuestIds.has(guest.id) ? "#7ab87a30" : "#c9a96e20"}`,
-                  }}
-                  title={`Перетащите на стол`}
-                >
-                  <Icon name="GripVertical" size={11} style={{ color: "#c9a96e50", flexShrink: 0 }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs truncate" style={{ color: "var(--cream)" }}>
-                      {guest.name}
-                    </p>
-                    {assignedTable && (
-                      <p className="text-xs truncate" style={{ color: "#7ab87a" }}>
-                        {assignedTable.label}
-                      </p>
-                    )}
-                    {!assignedTable && (
-                      <p className="text-xs" style={{ color: "#c9a96e50" }}>
-                        не размещён
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <EditorRightSidebar
+          guests={guests}
+          tables={tables}
+          guestSearch={guestSearch}
+          onGuestSearchChange={setGuestSearch}
+          onGuestDragStart={handleGuestDragStart}
+          onGuestDragEnd={() => setDraggingGuest(null)}
+        />
       </div>
     </div>
   );
