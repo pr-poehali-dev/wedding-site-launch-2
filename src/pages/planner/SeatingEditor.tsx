@@ -62,6 +62,8 @@ export default function SeatingEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hallShape, setHallShape] = useState<HallShape>("rect-h");
+  const [inlineEditId, setInlineEditId] = useState<string | null>(null);
+  const [inlineEditValue, setInlineEditValue] = useState("");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hallPreset = HALL_PRESETS.find((p) => p.shape === hallShape) ?? HALL_PRESETS[1];
@@ -188,6 +190,31 @@ export default function SeatingEditor({
     setSelectedId(null);
     scheduleSave(updated);
   }, [selectedId, tables, onUpdateTables, scheduleSave]);
+
+  const handleTableDoubleClick = useCallback(
+    (e: React.MouseEvent, tableId: string) => {
+      e.stopPropagation();
+      const table = tables.find((t) => t.id === tableId);
+      if (!table) return;
+      setInlineEditId(tableId);
+      setInlineEditValue(table.label);
+      setDragging(null);
+    },
+    [tables]
+  );
+
+  const commitInlineEdit = useCallback(() => {
+    if (!inlineEditId) return;
+    const trimmed = inlineEditValue.trim();
+    if (trimmed) {
+      const updated = tables.map((t) =>
+        t.id === inlineEditId ? { ...t, label: trimmed } : t
+      );
+      onUpdateTables(updated);
+      scheduleSave(updated);
+    }
+    setInlineEditId(null);
+  }, [inlineEditId, inlineEditValue, tables, onUpdateTables, scheduleSave]);
 
   const handleGuestDragStart = useCallback((guestId: string) => {
     setDraggingGuest(guestId);
@@ -379,6 +406,7 @@ export default function SeatingEditor({
                 key={table.id}
                 transform={`translate(${table.x}, ${table.y})`}
                 onMouseDown={(e) => handleTableMouseDown(e, table.id)}
+                onDoubleClick={(e) => handleTableDoubleClick(e, table.id)}
                 onMouseEnter={() => handleTableDragEnter(table.id)}
                 onMouseLeave={handleTableDragLeave}
                 onMouseUp={() => draggingGuest && handleTableDrop(table.id)}
@@ -415,6 +443,49 @@ export default function SeatingEditor({
                 )}
               </g>
             ))}
+
+            {/* Inline label editor — появляется поверх стола при двойном клике */}
+            {inlineEditId && (() => {
+              const t = tables.find((tbl) => tbl.id === inlineEditId);
+              if (!t) return null;
+              const inputW = 120;
+              const inputH = 26;
+              return (
+                <foreignObject
+                  x={t.x - inputW / 2}
+                  y={t.y - inputH / 2}
+                  width={inputW}
+                  height={inputH}
+                  style={{ overflow: "visible" }}
+                >
+                  <input
+                    // @ts-expect-error xmlns needed for SVG foreignObject
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    autoFocus
+                    value={inlineEditValue}
+                    onChange={(e) => setInlineEditValue(e.target.value)}
+                    onBlur={commitInlineEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitInlineEdit();
+                      if (e.key === "Escape") setInlineEditId(null);
+                    }}
+                    style={{
+                      width: inputW,
+                      height: inputH,
+                      background: "#1a160f",
+                      border: "1.5px solid #c9a96e",
+                      borderRadius: 4,
+                      color: "#f5edd8",
+                      fontSize: 12,
+                      fontFamily: "Montserrat, sans-serif",
+                      textAlign: "center",
+                      outline: "none",
+                      padding: "0 6px",
+                    }}
+                  />
+                </foreignObject>
+              );
+            })()}
           </svg>
         </div>
 

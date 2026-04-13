@@ -264,14 +264,15 @@ export default function GuestManager({
       >
         {/* Table Header */}
         <div
-          className="grid text-xs uppercase tracking-wider px-4 py-2"
+          className="grid text-xs uppercase tracking-wider px-3 py-2"
           style={{
-            gridTemplateColumns: "2fr 1fr 1fr 1fr 80px",
+            gridTemplateColumns: "32px 2fr 1fr 1fr 1fr 80px",
             background: "#0f0d09",
             color: "var(--gold)",
             borderBottom: "1px solid #c9a96e20",
           }}
         >
+          <span className="text-right pr-2" style={{ color: "#c9a96e50" }}>#</span>
           <span>Имя</span>
           <span>Телефон</span>
           <span>Стол</span>

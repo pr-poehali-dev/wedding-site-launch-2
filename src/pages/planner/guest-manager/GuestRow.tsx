@@ -45,6 +45,9 @@ export default function GuestRow({
   onUpdateRsvp,
   onUpdateTable,
 }: GuestRowProps) {
+  const num = idx + 1;
+  const assignedTable = tables.find((t) => t.id === guest.tableId);
+
   return (
     <div
       style={{
@@ -54,6 +57,13 @@ export default function GuestRow({
     >
       {isEditing ? (
         <div className="px-4 py-3 flex flex-col gap-2">
+          {/* номер при редактировании */}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold w-6 text-right flex-shrink-0" style={{ color: "#c9a96e60" }}>
+              {num}
+            </span>
+            <span className="text-xs" style={{ color: "#c9a96e60" }}>Редактирование</span>
+          </div>
           <div className="flex gap-2 flex-wrap">
             <input
               className="flex-1 min-w-0 px-2 py-1.5 rounded text-sm"
@@ -112,10 +122,19 @@ export default function GuestRow({
         </div>
       ) : (
         <div
-          className="grid items-center px-4 py-2.5 text-sm"
-          style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 80px" }}
+          className="grid items-center px-3 py-2.5 text-sm"
+          style={{ gridTemplateColumns: "32px 2fr 1fr 1fr 1fr 80px" }}
         >
-          <div className="min-w-0">
+          {/* Номер */}
+          <span
+            className="text-xs font-bold text-right pr-2 select-none"
+            style={{ color: "#c9a96e50" }}
+          >
+            {num}
+          </span>
+
+          {/* Имя */}
+          <div className="min-w-0 pr-2">
             <p className="truncate" style={{ color: "var(--cream)" }}>
               {guest.name}
             </p>
@@ -125,48 +144,54 @@ export default function GuestRow({
               </p>
             )}
           </div>
+
+          {/* Телефон */}
           <span className="text-xs truncate pr-2" style={{ color: "#c9a96e80" }}>
             {guest.phone || "—"}
           </span>
 
-          {/* Table assignment */}
-          <select
-            className="text-xs rounded px-1.5 py-1 mr-2"
-            style={{
-              background: "#1a160f",
-              border: "1px solid #c9a96e30",
-              color: "var(--cream)",
-              outline: "none",
-            }}
-            value={guest.tableId ?? ""}
-            onChange={(e) => onUpdateTable(guest.id, e.target.value)}
-          >
-            <option value="">— без стола —</option>
-            {tables.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
+          {/* Стол */}
+          <div className="pr-2">
+            <select
+              className="w-full text-xs rounded px-1.5 py-1"
+              style={{
+                background: "#1a160f",
+                border: `1px solid ${assignedTable ? assignedTable.color + "60" : "#c9a96e30"}`,
+                color: assignedTable ? "var(--cream)" : "#c9a96e50",
+                outline: "none",
+              }}
+              value={guest.tableId ?? ""}
+              onChange={(e) => onUpdateTable(guest.id, e.target.value)}
+            >
+              <option value="">— без стола —</option>
+              {tables.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* RSVP */}
-          <select
-            className="text-xs rounded px-1.5 py-1 mr-2"
-            style={{
-              background: "#1a160f",
-              border: `1px solid ${RSVP_COLORS[guest.rsvp ?? "pending"]}40`,
-              color: RSVP_COLORS[guest.rsvp ?? "pending"],
-              outline: "none",
-            }}
-            value={guest.rsvp ?? "pending"}
-            onChange={(e) => onUpdateRsvp(guest.id, e.target.value as RsvpStatus)}
-          >
-            {(Object.keys(RSVP_LABELS) as RsvpStatus[]).map((s) => (
-              <option key={s} value={s} style={{ color: RSVP_COLORS[s] }}>
-                {RSVP_LABELS[s]}
-              </option>
-            ))}
-          </select>
+          <div className="pr-2">
+            <select
+              className="w-full text-xs rounded px-1.5 py-1"
+              style={{
+                background: "#1a160f",
+                border: `1px solid ${RSVP_COLORS[guest.rsvp ?? "pending"]}40`,
+                color: RSVP_COLORS[guest.rsvp ?? "pending"],
+                outline: "none",
+              }}
+              value={guest.rsvp ?? "pending"}
+              onChange={(e) => onUpdateRsvp(guest.id, e.target.value as RsvpStatus)}
+            >
+              {(Object.keys(RSVP_LABELS) as RsvpStatus[]).map((s) => (
+                <option key={s} value={s} style={{ color: RSVP_COLORS[s] }}>
+                  {RSVP_LABELS[s]}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-1.5">
