@@ -34,10 +34,10 @@ const GALLERY_IMAGES = [
 ];
 
 const STATS = [
-  { value: "350+", label: "Событий оформлено" },
-  { value: "8", label: "Лет на рынке" },
-  { value: "98%", label: "Довольных клиентов" },
-  { value: "15", label: "Наград отрасли" },
+  { value: "500+", label: "Событий оформлено" },
+  { value: "15", label: "Лет на рынке" },
+  { value: "100+", label: "Постоянных клиентов" },
+  { value: "3", label: "Города присутствия" },
 ];
 
 const SERVICES = [

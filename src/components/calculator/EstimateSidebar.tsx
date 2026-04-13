@@ -147,14 +147,9 @@ export default function EstimateSidebar({
     window.open(`https://vk.com/share.php?comment=${text}`, "_blank");
   };
 
-  const handleShareTelegram = () => {
+  const handleShareMax = () => {
     const text = encodeURIComponent(buildShareText());
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${text}`, "_blank");
-  };
-
-  const handleShareWhatsapp = () => {
-    const text = encodeURIComponent(buildShareText());
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    window.open(`https://connect.ok.ru/offer?url=${encodeURIComponent(window.location.href)}&description=${text}`, "_blank");
   };
 
   const handleSendEmail = async () => {
@@ -202,32 +197,32 @@ export default function EstimateSidebar({
         {/* Строка Эконом */}
         <div className="grid grid-cols-2 gap-2 mb-1">
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.6)", textTransform: "uppercase" }}>Эконом</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.6rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.6)", textTransform: "uppercase" }}>Эконом</div>
             {checked.size > 0
-              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.75)" }}>{FORMAT(totalExampleMin)}</div>
-              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.3)" }}>—</div>}
+              ? <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(245,237,216,0.75)" }}>{FORMAT(totalExampleMin)}</div>
+              : <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(245,237,216,0.3)" }}>—</div>}
           </div>
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.12)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.9)", textTransform: "uppercase" }}>Эконом</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.6rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.9)", textTransform: "uppercase" }}>Эконом</div>
             {hasAnyMin
-              ? <div className="font-cormorant text-sm" style={{ color: "rgba(232,213,163,0.9)" }}>{FORMAT(totalUserMin)}</div>
-              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
+              ? <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(232,213,163,0.9)" }}>{FORMAT(totalUserMin)}</div>
+              : <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(245,237,216,0.15)" }}>—</div>}
           </div>
         </div>
 
         {/* Строка Премиум */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.6)", textTransform: "uppercase" }}>Премиум</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.6rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.6)", textTransform: "uppercase" }}>Премиум</div>
             {checked.size > 0
-              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.75)" }}>{FORMAT(totalExampleMax)}</div>
-              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.3)" }}>—</div>}
+              ? <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(245,237,216,0.75)" }}>{FORMAT(totalExampleMax)}</div>
+              : <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(245,237,216,0.3)" }}>—</div>}
           </div>
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "var(--gold)", textTransform: "uppercase" }}>Премиум</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.6rem", letterSpacing: "0.15em", color: "var(--gold)", textTransform: "uppercase" }}>Премиум</div>
             {hasAnyMax
-              ? <div className="font-cormorant text-sm" style={{ color: "var(--gold)" }}>{FORMAT(totalUserMax)}</div>
-              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
+              ? <div className="font-cormorant" style={{ fontSize: "1rem", color: "var(--gold)" }}>{FORMAT(totalUserMax)}</div>
+              : <div className="font-cormorant" style={{ fontSize: "1rem", color: "rgba(245,237,216,0.15)" }}>—</div>}
           </div>
         </div>
 
@@ -316,8 +311,7 @@ export default function EstimateSidebar({
             <div className="flex gap-2 mb-3">
               {[
                 { label: "ВКонтакте", onClick: handleShareVk },
-                { label: "Telegram", onClick: handleShareTelegram },
-                { label: "WhatsApp", onClick: handleShareWhatsapp },
+                { label: "MAX", onClick: handleShareMax },
               ].map((btn) => (
                 <button
                   key={btn.label}

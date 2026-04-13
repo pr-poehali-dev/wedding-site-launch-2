@@ -82,7 +82,7 @@ export default function ItemsGrid({
               <div className="flex items-start justify-between mb-3 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Icon name={item.icon} size={15} style={{ color: active ? "var(--gold)" : "rgba(201,169,110,0.35)", flexShrink: 0 }} />
-                  <div className="font-montserrat leading-tight" style={{ fontSize: "0.65rem", color: active ? "var(--cream)" : "rgba(245,237,216,0.45)" }}>
+                  <div className="font-montserrat leading-tight" style={{ fontSize: "0.72rem", color: active ? "var(--cream)" : "rgba(245,237,216,0.45)" }}>
                     {item.name}{item.id === "menu" && <span style={{ color: "var(--gold)" }}> ×{guests}</span>}
                   </div>
                 </div>
@@ -95,11 +95,11 @@ export default function ItemsGrid({
 
               {/* Две колонки: Пример | Мой расчёт */}
               <div className="grid grid-cols-2 gap-1 mb-1">
-                <div className="font-montserrat text-[8px] uppercase tracking-wider text-center pb-1"
+                <div className="font-montserrat text-[9px] uppercase tracking-wider text-center pb-1"
                   style={{ color: "rgba(245,237,216,0.55)", borderBottom: "1px solid rgba(201,169,110,0.15)" }}>
                   Пример
                 </div>
-                <div className="font-montserrat text-[8px] uppercase tracking-wider text-center pb-1"
+                <div className="font-montserrat text-[9px] uppercase tracking-wider text-center pb-1"
                   style={{ color: "rgba(201,169,110,0.85)", borderBottom: "1px solid rgba(201,169,110,0.3)" }}>
                   Мой расчёт
                 </div>
@@ -108,18 +108,18 @@ export default function ItemsGrid({
               {/* Эконом строка */}
               <div className="grid grid-cols-2 gap-1 mb-1">
                 <div className="px-1 py-1">
-                  <div className="font-montserrat text-[7px] uppercase mb-0.5" style={{ color: "rgba(245,237,216,0.65)" }}>Эконом</div>
-                  <div className="font-cormorant pb-px" style={{ fontSize: "0.85rem", color: "rgba(245,237,216,0.85)", borderBottom: "1px solid rgba(245,237,216,0.2)" }}>
+                  <div className="font-montserrat text-[8px] uppercase mb-0.5" style={{ color: "rgba(245,237,216,0.65)" }}>Эконом</div>
+                  <div className="font-cormorant pb-px" style={{ fontSize: "0.95rem", color: "rgba(245,237,216,0.85)", borderBottom: "1px solid rgba(245,237,216,0.2)" }}>
                     {item.defaultMin.toLocaleString("ru-RU")}
                   </div>
                 </div>
                 <div className="px-1 py-1">
-                  <div className="font-montserrat text-[7px] uppercase mb-0.5" style={{ color: hasMin ? "rgba(201,169,110,0.9)" : "rgba(245,237,216,0.65)" }}>Эконом</div>
+                  <div className="font-montserrat text-[8px] uppercase mb-0.5" style={{ color: hasMin ? "rgba(201,169,110,0.9)" : "rgba(245,237,216,0.65)" }}>Эконом</div>
                   <div className="relative">
                     <input type="text" inputMode="numeric" placeholder="—" value={minVal}
                       onChange={(e) => setVal(item.id, "min", e.target.value.replace(/\D/g, ""))}
                       className="w-full bg-transparent outline-none font-cormorant transition-all duration-200"
-                      style={{ fontSize: "0.85rem", borderBottom: hasMin ? "1px solid rgba(201,169,110,0.6)" : "1px solid rgba(201,169,110,0.25)", color: hasMin ? "rgba(232,213,163,0.9)" : "rgba(245,237,216,0.35)", paddingBottom: "1px" }}
+                      style={{ fontSize: "0.95rem", borderBottom: hasMin ? "1px solid rgba(201,169,110,0.6)" : "1px solid rgba(201,169,110,0.25)", color: hasMin ? "rgba(232,213,163,0.9)" : "rgba(245,237,216,0.35)", paddingBottom: "1px" }}
                       onFocus={(e) => (e.target.style.borderBottomColor = "rgba(201,169,110,0.9)")}
                       onBlur={(e) => (e.target.style.borderBottomColor = hasMin ? "rgba(201,169,110,0.6)" : "rgba(201,169,110,0.25)")} />
                   </div>
@@ -129,17 +129,17 @@ export default function ItemsGrid({
               {/* Премиум строка */}
               <div className="grid grid-cols-2 gap-1">
                 <div className="px-1 py-1">
-                  <div className="font-montserrat text-[7px] uppercase mb-0.5" style={{ color: "rgba(245,237,216,0.65)" }}>Премиум</div>
-                  <div className="font-cormorant pb-px" style={{ fontSize: "0.85rem", color: "rgba(245,237,216,0.85)", borderBottom: "1px solid rgba(245,237,216,0.2)" }}>
+                  <div className="font-montserrat text-[8px] uppercase mb-0.5" style={{ color: "rgba(245,237,216,0.65)" }}>Премиум</div>
+                  <div className="font-cormorant pb-px" style={{ fontSize: "0.95rem", color: "rgba(245,237,216,0.85)", borderBottom: "1px solid rgba(245,237,216,0.2)" }}>
                     {item.defaultMax.toLocaleString("ru-RU")}
                   </div>
                 </div>
                 <div className="px-1 py-1">
-                  <div className="font-montserrat text-[7px] uppercase mb-0.5" style={{ color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.65)" }}>Премиум</div>
+                  <div className="font-montserrat text-[8px] uppercase mb-0.5" style={{ color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.65)" }}>Премиум</div>
                   <input type="text" inputMode="numeric" placeholder="—" value={maxVal}
                     onChange={(e) => setVal(item.id, "max", e.target.value.replace(/\D/g, ""))}
                     className="w-full bg-transparent outline-none font-cormorant transition-all duration-200"
-                    style={{ fontSize: "0.85rem", borderBottom: hasMax ? "1px solid var(--gold)" : "1px solid rgba(201,169,110,0.25)", color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.35)", paddingBottom: "1px" }}
+                    style={{ fontSize: "0.95rem", borderBottom: hasMax ? "1px solid var(--gold)" : "1px solid rgba(201,169,110,0.25)", color: hasMax ? "var(--gold)" : "rgba(245,237,216,0.35)", paddingBottom: "1px" }}
                     onFocus={(e) => (e.target.style.borderBottomColor = "var(--gold-light)")}
                     onBlur={(e) => (e.target.style.borderBottomColor = hasMax ? "var(--gold)" : "rgba(201,169,110,0.25)")} />
                 </div>
