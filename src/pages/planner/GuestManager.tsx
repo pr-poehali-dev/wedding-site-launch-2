@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
+import Icon from "@/components/ui/icon";
 import type { TableItem, GuestItem } from "./SeatingEditor";
 import { RsvpStatus, generateId, apiGuests } from "./guest-manager/guestUtils";
 import AddGuestForm from "./guest-manager/AddGuestForm";
 import GuestRow from "./guest-manager/GuestRow";
+import { exportGuestsDocx, exportGuestsTxt } from "./guest-manager/exportGuests";
 
 interface GuestManagerProps {
   planId: string;
+  planTitle?: string;
   guests: GuestItem[];
   tables: TableItem[];
   onGuestsChange: (guests: GuestItem[]) => void;
@@ -14,6 +17,7 @@ interface GuestManagerProps {
 
 export default function GuestManager({
   planId,
+  planTitle = "Список гостей",
   guests,
   tables,
   onGuestsChange,
@@ -195,7 +199,7 @@ export default function GuestManager({
       style={{ background: "var(--velvet)", color: "var(--cream)" }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h2 className="font-cormorant text-2xl font-light" style={{ color: "var(--gold-light)" }}>
             Список гостей
@@ -206,11 +210,35 @@ export default function GuestManager({
             <span>Без стола: <span style={{ color: "#c97070" }}>{unassigned}</span></span>
           </div>
         </div>
-        {saving && (
-          <span className="text-xs" style={{ color: "#c9a96e60" }}>
-            Сохранение...
-          </span>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {saving && (
+            <span className="text-xs" style={{ color: "#c9a96e60" }}>
+              Сохранение...
+            </span>
+          )}
+          {guests.length > 0 && (
+            <>
+              <button
+                onClick={() => exportGuestsDocx(guests, tables, planTitle)}
+                className="flex items-center gap-2 px-3 py-2 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
+                style={{ background: "var(--gold)", color: "var(--velvet)", fontWeight: 700 }}
+                title="Скачать список по столам в Word"
+              >
+                <Icon name="FileText" size={13} />
+                Скачать .docx
+              </button>
+              <button
+                onClick={() => exportGuestsTxt(guests, tables, planTitle)}
+                className="flex items-center gap-2 px-3 py-2 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
+                style={{ background: "#1a160f", border: "1px solid #c9a96e40", color: "var(--gold)" }}
+                title="Скачать список по столам в TXT"
+              >
+                <Icon name="FileDown" size={13} />
+                .txt
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <AddGuestForm

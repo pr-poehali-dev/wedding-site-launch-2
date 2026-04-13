@@ -188,6 +188,7 @@ export default function PlannerPage() {
           <div className="flex-1 overflow-y-auto">
             <GuestManager
               planId={String(activePlan.id)}
+              planTitle={planTitle}
               guests={guests}
               tables={tables}
               onGuestsChange={setGuests}
