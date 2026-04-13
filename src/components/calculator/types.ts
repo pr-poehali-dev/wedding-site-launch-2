@@ -62,7 +62,7 @@ export const CATEGORIES = [
   { id: "decor", label: "Декор", icon: "Flower2" },
   { id: "restaurant", label: "Ресторан", icon: "UtensilsCrossed" },
   { id: "entertainment", label: "Развлечения", icon: "Mic2" },
-  { id: "extra", label: "Дополнительно", icon: "Plus" },
+  { id: "extra", label: "Дополнительно", icon: "Sparkles" },
 ];
 
 export const FORMAT = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 0 }) + " ₽";

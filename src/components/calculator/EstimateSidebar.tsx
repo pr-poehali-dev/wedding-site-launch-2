@@ -190,7 +190,7 @@ export default function EstimateSidebar({
         <div className="grid grid-cols-2 gap-2 mb-2">
           {/* Заголовки-кнопки */}
           <div className="text-center py-2 font-montserrat text-[9px] tracking-widest uppercase"
-            style={{ border: "1px solid rgba(201,169,110,0.25)", color: "rgba(245,237,216,0.4)", background: "transparent" }}>
+            style={{ border: "1px solid rgba(201,169,110,0.4)", color: "rgba(245,237,216,0.75)", background: "transparent" }}>
             Пример
           </div>
           <div className="text-center py-2 font-montserrat text-[9px] tracking-widest uppercase"
@@ -202,13 +202,13 @@ export default function EstimateSidebar({
         {/* Строка Эконом */}
         <div className="grid grid-cols-2 gap-2 mb-1">
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.25)", textTransform: "uppercase" }}>Эконом</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.6)", textTransform: "uppercase" }}>Эконом</div>
             {checked.size > 0
-              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.45)" }}>{FORMAT(totalExampleMin)}</div>
-              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
+              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.75)" }}>{FORMAT(totalExampleMin)}</div>
+              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.3)" }}>—</div>}
           </div>
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.12)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.55)", textTransform: "uppercase" }}>Эконом</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(201,169,110,0.9)", textTransform: "uppercase" }}>Эконом</div>
             {hasAnyMin
               ? <div className="font-cormorant text-sm" style={{ color: "rgba(232,213,163,0.9)" }}>{FORMAT(totalUserMin)}</div>
               : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
@@ -218,10 +218,10 @@ export default function EstimateSidebar({
         {/* Строка Премиум */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.08)" }}>
-            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.25)", textTransform: "uppercase" }}>Премиум</div>
+            <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "rgba(245,237,216,0.6)", textTransform: "uppercase" }}>Премиум</div>
             {checked.size > 0
-              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.45)" }}>{FORMAT(totalExampleMax)}</div>
-              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.15)" }}>—</div>}
+              ? <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.75)" }}>{FORMAT(totalExampleMax)}</div>
+              : <div className="font-cormorant text-sm" style={{ color: "rgba(245,237,216,0.3)" }}>—</div>}
           </div>
           <div className="text-center py-2 px-2" style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
             <div className="font-montserrat mb-1" style={{ fontSize: "0.55rem", letterSpacing: "0.15em", color: "var(--gold)", textTransform: "uppercase" }}>Премиум</div>
@@ -237,7 +237,7 @@ export default function EstimateSidebar({
         </div>
 
         {/* Детализация */}
-        <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.2)" }}>Детализация</div>
+        <div className="font-montserrat text-[9px] tracking-widest uppercase mb-2" style={{ color: "rgba(245,237,216,0.5)" }}>Детализация</div>
 
         {estimateItems.length === 0 ? (
           <div className="font-montserrat text-xs text-center py-3 mb-5" style={{ color: "rgba(245,237,216,0.15)" }}>Отметьте позиции галочкой</div>
@@ -246,8 +246,8 @@ export default function EstimateSidebar({
             {/* Шапка колонок */}
             <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 mb-1 pb-1" style={{ borderBottom: "1px solid rgba(201,169,110,0.1)" }}>
               <div />
-              <div className="font-montserrat text-[7px] uppercase tracking-widest text-center w-14" style={{ color: "rgba(245,237,216,0.2)" }}>Пример</div>
-              <div className="font-montserrat text-[7px] uppercase tracking-widest text-center w-14" style={{ color: "rgba(201,169,110,0.5)" }}>Мой расчёт</div>
+              <div className="font-montserrat text-[7px] uppercase tracking-widest text-center w-14" style={{ color: "rgba(245,237,216,0.55)" }}>Пример</div>
+              <div className="font-montserrat text-[7px] uppercase tracking-widest text-center w-14" style={{ color: "rgba(201,169,110,0.85)" }}>Мой расчёт</div>
             </div>
 
             {/* Строки позиций */}
@@ -257,24 +257,24 @@ export default function EstimateSidebar({
                   {/* Название */}
                   <div className="flex items-center gap-1 mb-0.5 mt-1">
                     <Icon name={item.icon} size={9} style={{ color: "rgba(201,169,110,0.6)", flexShrink: 0 }} />
-                    <span className="font-montserrat truncate" style={{ fontSize: "0.58rem", color: "rgba(245,237,216,0.7)" }}>{item.name}</span>
+                    <span className="font-montserrat truncate" style={{ fontSize: "0.58rem", color: "rgba(245,237,216,0.9)" }}>{item.name}</span>
                   </div>
                   {/* Эконом / Премиум в двух колонках */}
                   <div className="grid grid-cols-[1fr_auto_auto] gap-x-2">
-                    <div className="font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.25)" }}>Эконом</div>
-                    <div className="font-cormorant text-xs text-center w-14" style={{ color: "rgba(245,237,216,0.3)" }}>
+                    <div className="font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.6)" }}>Эконом</div>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: "rgba(245,237,216,0.6)" }}>
                       {item.exampleEconom > 0 ? FORMAT(item.exampleEconom) : "—"}
                     </div>
-                    <div className="font-cormorant text-xs text-center w-14" style={{ color: item.userEconom > 0 ? "rgba(232,213,163,0.9)" : "rgba(245,237,216,0.2)" }}>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: item.userEconom > 0 ? "rgba(232,213,163,1)" : "rgba(245,237,216,0.35)" }}>
                       {item.userEconom > 0 ? FORMAT(item.userEconom) : "—"}
                     </div>
                   </div>
                   <div className="grid grid-cols-[1fr_auto_auto] gap-x-2">
-                    <div className="font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.25)" }}>Премиум</div>
-                    <div className="font-cormorant text-xs text-center w-14" style={{ color: "rgba(245,237,216,0.3)" }}>
+                    <div className="font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.6)" }}>Премиум</div>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: "rgba(245,237,216,0.6)" }}>
                       {item.examplePremium > 0 ? FORMAT(item.examplePremium) : "—"}
                     </div>
-                    <div className="font-cormorant text-xs text-center w-14" style={{ color: item.userPremium > 0 ? "var(--gold)" : "rgba(245,237,216,0.2)" }}>
+                    <div className="font-cormorant text-xs text-center w-14" style={{ color: item.userPremium > 0 ? "var(--gold)" : "rgba(245,237,216,0.35)" }}>
                       {item.userPremium > 0 ? FORMAT(item.userPremium) : "—"}
                     </div>
                   </div>
@@ -386,10 +386,10 @@ export default function EstimateSidebar({
                       <td className="py-1.5 font-montserrat" style={{ fontSize: "0.6rem", color: "rgba(245,237,216,0.75)", paddingRight: 6 }}>
                         <span className="flex items-center gap-1">
                           <Icon name={item.icon} size={9} style={{ color: "rgba(201,169,110,0.6)", flexShrink: 0 }} />
-                          <span className="truncate" style={{ maxWidth: 80 }}>{item.name}</span>
+                          <span className="truncate" style={{ maxWidth: 80, color: "rgba(245,237,216,0.9)" }}>{item.name}</span>
                         </span>
                       </td>
-                      <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "rgba(201,169,110,0.85)", paddingRight: 6, whiteSpace: "nowrap" }}>
+                      <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "rgba(201,169,110,1)", paddingRight: 6, whiteSpace: "nowrap" }}>
                         {item.userEconom > 0 ? FORMAT(item.userEconom) : "—"}
                       </td>
                       <td className="py-1.5 font-cormorant text-right" style={{ fontSize: "0.7rem", color: "var(--gold)", whiteSpace: "nowrap" }}>
@@ -398,7 +398,7 @@ export default function EstimateSidebar({
                     </tr>
                   ))}
                   <tr style={{ borderTop: "1px solid rgba(201,169,110,0.2)" }}>
-                    <td className="pt-2 font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.4)", letterSpacing: "0.1em" }}>ИТОГО</td>
+                    <td className="pt-2 font-montserrat" style={{ fontSize: "0.55rem", color: "rgba(245,237,216,0.7)", letterSpacing: "0.1em" }}>ИТОГО</td>
                     <td className="pt-2 font-cormorant text-right" style={{ fontSize: "0.75rem", color: "rgba(201,169,110,0.9)", paddingRight: 6, whiteSpace: "nowrap" }}>
                       {totalUserMin ? FORMAT(totalUserMin) : "—"}
                     </td>
