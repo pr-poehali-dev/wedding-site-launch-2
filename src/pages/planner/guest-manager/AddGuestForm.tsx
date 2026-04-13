@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import Icon from "@/components/ui/icon";
+import mammoth from "mammoth";
 
 interface AddGuestFormProps {
   addName: string;
@@ -132,26 +133,46 @@ export default function AddGuestForm({
     setIsListening(false);
   }, []);
 
+  const [importLoading, setImportLoading] = useState(false);
+
   const handleFileImport = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const text = ev.target?.result as string;
-        // Strip HTML tags if .doc/.docx opened as text (basic fallback)
-        const clean = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        // Split by common separators: newlines, semicolons, commas (if no digits nearby)
-        const lines = clean
-          .split(/[\n;]/)
+      e.target.value = "";
+      setImportLoading(true);
+
+      try {
+        const isDocx =
+          file.name.endsWith(".docx") ||
+          file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+        let rawText = "";
+
+        if (isDocx) {
+          // Правильный парсинг .docx через mammoth
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          rawText = result.value;
+        } else {
+          // .txt / .csv — читаем как текст
+          rawText = await file.text();
+        }
+
+        // Разбиваем на строки, чистим пустые
+        const lines = rawText
+          .split(/[\n\r]+/)
           .map((s) => s.trim())
           .filter((s) => s.length > 1)
           .join("\n");
+
         onBulkTextChange(lines);
         if (!showBulk) onToggleBulk();
-      };
-      reader.readAsText(file);
-      e.target.value = "";
+      } catch {
+        setVoiceError("Не удалось прочитать файл. Попробуйте сохранить его как .txt");
+      } finally {
+        setImportLoading(false);
+      }
     },
     [onBulkTextChange, showBulk, onToggleBulk]
   );
@@ -299,16 +320,18 @@ export default function AddGuestForm({
         </button>
         <button
           onClick={() => fileInputRef.current?.click()}
+          disabled={importLoading}
           className="text-xs flex items-center gap-1.5 transition-all hover:opacity-80"
-          style={{ color: "#c9a96e80" }}
+          style={{ color: importLoading ? "#c9a96e40" : "#c9a96e80" }}
+          title="Загрузить список из Word (.docx) или текстового файла (.txt)"
         >
-          <Icon name="FileUp" size={12} />
-          Загрузить из файла
+          <Icon name={importLoading ? "Loader" : "FileUp"} size={12} />
+          {importLoading ? "Читаю файл..." : "Загрузить из Word / .txt"}
         </button>
         <input
           ref={fileInputRef}
           type="file"
-          accept=".txt,.doc,.docx,.csv"
+          accept=".txt,.docx,.csv"
           className="hidden"
           onChange={handleFileImport}
         />
@@ -317,7 +340,7 @@ export default function AddGuestForm({
       {showBulk && !parsedGuests && (
         <div className="mt-3 flex flex-col gap-2">
           <p className="text-xs" style={{ color: "#c9a96e80" }}>
-            Вставьте список имён (каждое с новой строки). Можно сразу указать телефон через пробел.
+            Вставьте список имён (каждое с новой строки) или загрузите файл Word / .txt выше. Можно сразу указать телефон через пробел.
           </p>
           <textarea
             className="w-full px-3 py-2 rounded text-sm resize-none"
