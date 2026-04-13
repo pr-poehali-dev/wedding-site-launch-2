@@ -1,8 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import Icon from "@/components/ui/icon";
-import { RoundTable, RectTable, OvalTable, generateId, GRID_SIZE, TABLE_COLORS, HallShape, HALL_PRESETS } from "./seating-editor/tableShapes";
+import { generateId, TABLE_COLORS, HallShape, HALL_PRESETS } from "./seating-editor/tableShapes";
 import EditorLeftSidebar from "./seating-editor/EditorLeftSidebar";
 import EditorRightSidebar from "./seating-editor/EditorRightSidebar";
+import EditorToolbar from "./seating-editor/EditorToolbar";
+import HallCanvas from "./seating-editor/HallCanvas";
 
 const PLANS_API = "https://functions.poehali.dev/8192888d-d171-4174-9179-bae0a5946737";
 const GUESTS_API = "https://functions.poehali.dev/5a8e58c4-106e-46da-8f0c-84e078f2432c";
@@ -278,19 +279,6 @@ export default function SeatingEditor({
     img.src = url;
   }, [plan.title, HALL_W, HALL_H]);
 
-  // Render grid lines
-  const gridLines: React.ReactNode[] = [];
-  for (let x = 0; x <= HALL_W; x += GRID_SIZE) {
-    gridLines.push(
-      <line key={`vl${x}`} x1={x} y1={0} x2={x} y2={HALL_H} stroke="#ffffff08" strokeWidth={0.5} />
-    );
-  }
-  for (let y = 0; y <= HALL_H; y += GRID_SIZE) {
-    gridLines.push(
-      <line key={`hl${y}`} x1={0} y1={y} x2={HALL_W} y2={y} stroke="#ffffff08" strokeWidth={0.5} />
-    );
-  }
-
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -304,58 +292,14 @@ export default function SeatingEditor({
       className="flex flex-col h-full min-h-screen font-montserrat"
       style={{ background: "var(--velvet)", color: "var(--cream)" }}
     >
-      {/* Top Toolbar */}
-      <div
-        className="flex items-center gap-3 px-4 py-2 border-b"
-        style={{ borderColor: "#c9a96e30", background: "#0f0d09" }}
-      >
-        <span className="text-xs uppercase tracking-widest" style={{ color: "var(--gold)" }}>
-          {plan.title}
-        </span>
-        <div className="flex-1" />
-        {saving && (
-          <span className="text-xs" style={{ color: "#c9a96e80" }}>
-            Сохранение...
-          </span>
-        )}
-        {saved && !saving && (
-          <span className="text-xs" style={{ color: "#7ab87a" }}>
-            Сохранено
-          </span>
-        )}
-        {/* Guests button — prominent, near tables */}
-        {onOpenGuests && (
-          <button
-            onClick={onOpenGuests}
-            className="flex items-center gap-2 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-90"
-            style={{
-              background: "var(--gold)",
-              color: "var(--velvet)",
-              fontWeight: 700,
-              boxShadow: "0 0 10px #c9a96e50",
-            }}
-          >
-            <Icon name="Users" size={13} />
-            <span>Гости</span>
-            {unassignedCount > 0 && (
-              <span
-                className="flex items-center justify-center w-4 h-4 rounded-full text-xs"
-                style={{ background: "#c97070", color: "#fff", fontWeight: 700, fontSize: 10 }}
-              >
-                {unassignedCount}
-              </span>
-            )}
-          </button>
-        )}
-        <button
-          onClick={downloadPng}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
-          style={{ background: "#1e1a12", border: "1px solid #c9a96e50", color: "var(--gold)" }}
-        >
-          <Icon name="Download" size={13} />
-          <span>PNG</span>
-        </button>
-      </div>
+      <EditorToolbar
+        planTitle={plan.title}
+        saving={saving}
+        saved={saved}
+        unassignedCount={unassignedCount}
+        onOpenGuests={onOpenGuests}
+        onDownloadPng={downloadPng}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <EditorLeftSidebar
@@ -367,127 +311,29 @@ export default function SeatingEditor({
           onHallShapeChange={setHallShape}
         />
 
-        {/* Canvas */}
-        <div className="flex-1 flex items-start justify-center overflow-auto p-4">
-          <svg
-            ref={svgRef}
-            viewBox={`0 0 ${HALL_W} ${HALL_H}`}
-            style={{
-              width: "100%",
-              maxWidth: HALL_W,
-              cursor: dragging ? "grabbing" : "default",
-              display: "block",
-              borderRadius: 6,
-              border: "1px solid #c9a96e20",
-            }}
-            onMouseMove={handleSvgMouseMove}
-            onMouseUp={handleSvgMouseUp}
-            onMouseLeave={handleSvgMouseUp}
-            onClick={handleSvgClick}
-          >
-            {/* Hall background */}
-            <rect x={0} y={0} width={HALL_W} height={HALL_H} fill="#110f0a" />
-            {/* Grid */}
-            {gridLines}
-            {/* Hall border */}
-            <rect
-              x={2}
-              y={2}
-              width={HALL_W - 4}
-              height={HALL_H - 4}
-              fill="none"
-              stroke="#c9a96e20"
-              strokeWidth={1.5}
-            />
-
-            {/* Tables */}
-            {tables.map((table) => (
-              <g
-                key={table.id}
-                transform={`translate(${table.x}, ${table.y})`}
-                onMouseDown={(e) => handleTableMouseDown(e, table.id)}
-                onDoubleClick={(e) => handleTableDoubleClick(e, table.id)}
-                onMouseEnter={() => handleTableDragEnter(table.id)}
-                onMouseLeave={handleTableDragLeave}
-                onMouseUp={() => draggingGuest && handleTableDrop(table.id)}
-                style={{ cursor: dragging?.tableId === table.id ? "grabbing" : "grab" }}
-              >
-                {table.shape === "round" && (
-                  <RoundTable
-                    table={table}
-                    selected={selectedId === table.id}
-                    dragOver={dragOverTableId === table.id}
-                  />
-                )}
-                {table.shape === "rect" && (
-                  <RectTable
-                    table={table}
-                    selected={selectedId === table.id}
-                    dragOver={dragOverTableId === table.id}
-                  />
-                )}
-                {table.shape === "oval" && (
-                  <OvalTable
-                    table={table}
-                    selected={selectedId === table.id}
-                    dragOver={dragOverTableId === table.id}
-                  />
-                )}
-                {table.shape === "row" && (
-                  <RectTable
-                    table={table}
-                    selected={selectedId === table.id}
-                    dragOver={dragOverTableId === table.id}
-                    isRow
-                  />
-                )}
-              </g>
-            ))}
-
-            {/* Inline label editor — появляется поверх стола при двойном клике */}
-            {inlineEditId && (() => {
-              const t = tables.find((tbl) => tbl.id === inlineEditId);
-              if (!t) return null;
-              const inputW = 120;
-              const inputH = 26;
-              return (
-                <foreignObject
-                  x={t.x - inputW / 2}
-                  y={t.y - inputH / 2}
-                  width={inputW}
-                  height={inputH}
-                  style={{ overflow: "visible" }}
-                >
-                  <input
-                    // @ts-expect-error xmlns needed for SVG foreignObject
-                    xmlns="http://www.w3.org/1999/xhtml"
-                    autoFocus
-                    value={inlineEditValue}
-                    onChange={(e) => setInlineEditValue(e.target.value)}
-                    onBlur={commitInlineEdit}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitInlineEdit();
-                      if (e.key === "Escape") setInlineEditId(null);
-                    }}
-                    style={{
-                      width: inputW,
-                      height: inputH,
-                      background: "#1a160f",
-                      border: "1.5px solid #c9a96e",
-                      borderRadius: 4,
-                      color: "#f5edd8",
-                      fontSize: 12,
-                      fontFamily: "Montserrat, sans-serif",
-                      textAlign: "center",
-                      outline: "none",
-                      padding: "0 6px",
-                    }}
-                  />
-                </foreignObject>
-              );
-            })()}
-          </svg>
-        </div>
+        <HallCanvas
+          svgRef={svgRef}
+          tables={tables}
+          hallW={HALL_W}
+          hallH={HALL_H}
+          selectedId={selectedId}
+          dragging={dragging}
+          dragOverTableId={dragOverTableId}
+          draggingGuest={draggingGuest}
+          inlineEditId={inlineEditId}
+          inlineEditValue={inlineEditValue}
+          onSvgMouseMove={handleSvgMouseMove}
+          onSvgMouseUp={handleSvgMouseUp}
+          onSvgClick={handleSvgClick}
+          onTableMouseDown={handleTableMouseDown}
+          onTableDoubleClick={handleTableDoubleClick}
+          onTableDragEnter={handleTableDragEnter}
+          onTableDragLeave={handleTableDragLeave}
+          onTableDrop={handleTableDrop}
+          onInlineEditChange={setInlineEditValue}
+          onInlineEditCommit={commitInlineEdit}
+          onInlineEditCancel={() => setInlineEditId(null)}
+        />
 
         <EditorRightSidebar
           guests={guests}
