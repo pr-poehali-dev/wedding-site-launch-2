@@ -159,11 +159,22 @@ export default function AddGuestForm({
           rawText = await file.text();
         }
 
-        // Разбиваем на строки, чистим пустые
-        const lines = rawText
+        // Разбиваем по переносам строк и спецсимволам нумерованного списка Word
+        // (mammoth иногда не добавляет \n между пунктами списка)
+        const expanded = rawText
+          // перед "1." "2." "10." и т.д. в начале слова вставляем перенос
+          .replace(/(?<!\n)(\s*)(\d{1,2})\.\s+/g, "\n$2. ")
+          // перед "1 стол" "2 стол" тоже
+          .replace(/(?<!\n)(\s*)(\d{1,2}\s+стол)/gi, "\n$2");
+
+        const lines = expanded
           .split(/[\n\r]+/)
           .map((s) => s.trim())
-          .filter((s) => s.length > 1)
+          // Убираем строки-заголовки типа "1 стол.", "2 стол" и пустые
+          .filter((s) => s.length > 1 && !/^\d+\s*стол/i.test(s))
+          // Убираем нумерацию: "1. Вера" → "Вера", "10. Иван" → "Иван"
+          .map((s) => s.replace(/^\d{1,2}\.\s*/, "").trim())
+          .filter((s) => s.length > 0)
           .join("\n");
 
         onBulkTextChange(lines);
