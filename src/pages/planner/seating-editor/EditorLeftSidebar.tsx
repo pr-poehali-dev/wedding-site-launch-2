@@ -68,6 +68,7 @@ export default function EditorLeftSidebar({
           { shape: "rect" as TableShape, label: "Прямоугольный", icon: "Square" },
           { shape: "oval" as TableShape, label: "Овальный", icon: "Ellipsis" },
           { shape: "row" as TableShape, label: "Ряд (церемония)", icon: "AlignLeft" },
+          { shape: "presidium" as TableShape, label: "Президиум", icon: "Crown" },
         ]
       ).map(({ shape, label, icon }) => (
         <button

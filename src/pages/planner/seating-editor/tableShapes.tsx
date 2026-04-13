@@ -1,4 +1,4 @@
-import { TableItem, TableShape } from "../SeatingEditor";
+import { TableItem, TableShape, GuestItem } from "../SeatingEditor";
 
 export const TABLE_COLORS = [
   { label: "Золото", value: "#c9a96e" },
@@ -39,19 +39,31 @@ export function getTableDimensions(shape: TableShape, seats: number) {
       return { w: Math.max(80, 40 + seats * 12), h: 52 };
     case "row":
       return { w: Math.max(100, seats * 22), h: 28 };
+    case "presidium":
+      return { w: Math.max(160, seats * 30), h: 36 };
     default:
       return {};
   }
+}
+
+// Truncate name for SVG display
+function shortName(name: string, max = 8) {
+  if (name.length <= max) return name;
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return `${parts[0][0]}. ${parts[parts.length - 1]}`;
+  return name.slice(0, max);
 }
 
 export function RoundTable({
   table,
   selected,
   dragOver,
+  guests = [],
 }: {
   table: TableItem;
   selected: boolean;
   dragOver: boolean;
+  guests?: GuestItem[];
 }) {
   const { r } = getTableDimensions("round", table.seats) as { r: number };
   const seatDots: { cx: number; cy: number }[] = [];
@@ -73,9 +85,27 @@ export function RoundTable({
         strokeWidth={dragOver ? 2 : 0}
         strokeDasharray="4 3"
       />
-      {seatDots.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-      ))}
+      {seatDots.map((d, i) => {
+        const guest = guests[i];
+        return (
+          <g key={i}>
+            <circle cx={d.cx} cy={d.cy} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+            {guest && (
+              <text
+                x={d.cx}
+                y={d.cy + (d.cy > 0 ? 18 : -14)}
+                textAnchor="middle"
+                fontSize={7}
+                fontFamily="Montserrat, sans-serif"
+                fill="#c9a96e"
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              >
+                {shortName(guest.name, 7)}
+              </text>
+            )}
+          </g>
+        );
+      })}
       <circle
         cx={0}
         cy={0}
@@ -105,11 +135,13 @@ export function RectTable({
   selected,
   dragOver,
   isRow,
+  guests = [],
 }: {
   table: TableItem;
   selected: boolean;
   dragOver: boolean;
   isRow?: boolean;
+  guests?: GuestItem[];
 }) {
   const dims = getTableDimensions(table.shape, table.seats) as { w: number; h: number };
   const { w, h } = dims;
@@ -125,13 +157,33 @@ export function RectTable({
   return (
     <>
       {!isRow &&
-        seatsTop.map((sx, i) => (
-          <circle key={`t${i}`} cx={sx} cy={-h / 2 - 10} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-        ))}
+        seatsTop.map((sx, i) => {
+          const guest = guests[i];
+          return (
+            <g key={`t${i}`}>
+              <circle cx={sx} cy={-h / 2 - 10} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+              {guest && (
+                <text x={sx} y={-h / 2 - 22} textAnchor="middle" fontSize={7} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
+                  {shortName(guest.name, 7)}
+                </text>
+              )}
+            </g>
+          );
+        })}
       {!isRow &&
-        seatsBottom.map((sx, i) => (
-          <circle key={`b${i}`} cx={sx} cy={h / 2 + 10} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-        ))}
+        seatsBottom.map((sx, i) => {
+          const guest = guests[seatsTop.length + i];
+          return (
+            <g key={`b${i}`}>
+              <circle cx={sx} cy={h / 2 + 10} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+              {guest && (
+                <text x={sx} y={h / 2 + 24} textAnchor="middle" fontSize={7} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
+                  {shortName(guest.name, 7)}
+                </text>
+              )}
+            </g>
+          );
+        })}
       <rect
         x={-w / 2}
         y={-h / 2}
@@ -162,10 +214,12 @@ export function OvalTable({
   table,
   selected,
   dragOver,
+  guests = [],
 }: {
   table: TableItem;
   selected: boolean;
   dragOver: boolean;
+  guests?: GuestItem[];
 }) {
   const { rx, ry } = getTableDimensions("oval", table.seats) as { rx: number; ry: number };
   const seatDots: { cx: number; cy: number }[] = [];
@@ -178,9 +232,27 @@ export function OvalTable({
   }
   return (
     <>
-      {seatDots.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r={5} fill="#2a2318" stroke={table.color} strokeWidth={1.5} />
-      ))}
+      {seatDots.map((d, i) => {
+        const guest = guests[i];
+        return (
+          <g key={i}>
+            <circle cx={d.cx} cy={d.cy} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+            {guest && (
+              <text
+                x={d.cx}
+                y={d.cy + (d.cy > 0 ? 18 : -14)}
+                textAnchor="middle"
+                fontSize={7}
+                fontFamily="Montserrat, sans-serif"
+                fill="#c9a96e"
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              >
+                {shortName(guest.name, 7)}
+              </text>
+            )}
+          </g>
+        );
+      })}
       <ellipse
         cx={0}
         cy={0}
@@ -202,6 +274,108 @@ export function OvalTable({
       >
         {table.label.slice(0, 10)}
       </text>
+    </>
+  );
+}
+
+// Президиум — одна линия мест СВЕРХУ вдоль длинной стороны
+export function PresidiumTable({
+  table,
+  selected,
+  dragOver,
+  guests = [],
+}: {
+  table: TableItem;
+  selected: boolean;
+  dragOver: boolean;
+  guests?: GuestItem[];
+}) {
+  const { w, h } = getTableDimensions("presidium", table.seats) as { w: number; h: number };
+  const seats: number[] = [];
+  for (let i = 0; i < table.seats; i++) {
+    seats.push((i + 1) * (w / (table.seats + 1)) - w / 2);
+  }
+  return (
+    <>
+      {/* Стол */}
+      <rect
+        x={-w / 2}
+        y={-h / 2}
+        width={w}
+        height={h}
+        rx={4}
+        fill="#1e1508"
+        stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
+        strokeWidth={selected ? 2.5 : 2}
+      />
+      {/* Метка ПРЕЗИДИУМ */}
+      <text
+        x={0}
+        y={0}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={10}
+        fontFamily="Montserrat, sans-serif"
+        fill="#c9a96e"
+        fontWeight="bold"
+        style={{ pointerEvents: "none", userSelect: "none" }}
+      >
+        {table.label.slice(0, 14)}
+      </text>
+      {/* Места ТОЛЬКО сверху */}
+      {seats.map((sx, i) => {
+        const guest = guests[i];
+        return (
+          <g key={i}>
+            {/* Линия от стола к месту */}
+            <line
+              x1={sx}
+              y1={-h / 2}
+              x2={sx}
+              y2={-h / 2 - 8}
+              stroke={table.color}
+              strokeWidth={1}
+              opacity={0.4}
+            />
+            {/* Место */}
+            <circle
+              cx={sx}
+              cy={-h / 2 - 16}
+              r={guest ? 8 : 6}
+              fill={guest ? "#1e2a10" : "#2a2318"}
+              stroke={guest ? "#7ab87a" : table.color}
+              strokeWidth={1.5}
+            />
+            {/* Номер места */}
+            <text
+              x={sx}
+              y={-h / 2 - 16}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={6}
+              fontFamily="Montserrat, sans-serif"
+              fill={guest ? "#7ab87a" : "#c9a96e80"}
+              style={{ pointerEvents: "none", userSelect: "none" }}
+            >
+              {i + 1}
+            </text>
+            {/* Имя гостя */}
+            {guest && (
+              <text
+                x={sx}
+                y={-h / 2 - 30}
+                textAnchor="middle"
+                fontSize={7}
+                fontFamily="Montserrat, sans-serif"
+                fill="#e8d5a3"
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              >
+                {shortName(guest.name, 8)}
+              </text>
+            )}
+          </g>
+        );
+      })}
     </>
   );
 }

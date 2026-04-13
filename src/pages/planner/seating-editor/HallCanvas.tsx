@@ -1,10 +1,11 @@
 import React from "react";
-import { RoundTable, RectTable, OvalTable, GRID_SIZE } from "./tableShapes";
-import type { TableItem } from "../SeatingEditor";
+import { RoundTable, RectTable, OvalTable, PresidiumTable, GRID_SIZE } from "./tableShapes";
+import type { TableItem, GuestItem } from "../SeatingEditor";
 
 interface HallCanvasProps {
   svgRef: React.RefObject<SVGSVGElement>;
   tables: TableItem[];
+  guests: GuestItem[];
   hallW: number;
   hallH: number;
   selectedId: string | null;
@@ -29,6 +30,7 @@ interface HallCanvasProps {
 export default function HallCanvas({
   svgRef,
   tables,
+  guests,
   hallW,
   hallH,
   selectedId,
@@ -140,48 +142,66 @@ export default function HallCanvas({
         />
 
         {/* Tables */}
-        {tables.map((table) => (
-          <g
-            key={table.id}
-            transform={`translate(${table.x}, ${table.y})`}
-            onMouseDown={(e) => onTableMouseDown(e, table.id)}
-            onDoubleClick={(e) => onTableDoubleClick(e, table.id)}
-            onMouseEnter={() => onTableDragEnter(table.id)}
-            onMouseLeave={onTableDragLeave}
-            onMouseUp={() => draggingGuest && onTableDrop(table.id)}
-            style={{ cursor: dragging?.tableId === table.id ? "grabbing" : "grab" }}
-          >
-            {table.shape === "round" && (
-              <RoundTable
-                table={table}
-                selected={selectedId === table.id}
-                dragOver={dragOverTableId === table.id}
-              />
-            )}
-            {table.shape === "rect" && (
-              <RectTable
-                table={table}
-                selected={selectedId === table.id}
-                dragOver={dragOverTableId === table.id}
-              />
-            )}
-            {table.shape === "oval" && (
-              <OvalTable
-                table={table}
-                selected={selectedId === table.id}
-                dragOver={dragOverTableId === table.id}
-              />
-            )}
-            {table.shape === "row" && (
-              <RectTable
-                table={table}
-                selected={selectedId === table.id}
-                dragOver={dragOverTableId === table.id}
-                isRow
-              />
-            )}
-          </g>
-        ))}
+        {tables.map((table) => {
+          const tableGuests = guests.filter((g) => g.tableId === table.id);
+          return (
+            <g
+              key={table.id}
+              transform={`translate(${table.x}, ${table.y})`}
+              onMouseDown={(e) => onTableMouseDown(e, table.id)}
+              onDoubleClick={(e) => onTableDoubleClick(e, table.id)}
+              onMouseEnter={() => onTableDragEnter(table.id)}
+              onMouseLeave={onTableDragLeave}
+              onMouseUp={() => draggingGuest && onTableDrop(table.id)}
+              onDragOver={(e) => { e.preventDefault(); onTableDragEnter(table.id); }}
+              onDragLeave={onTableDragLeave}
+              onDrop={(e) => { e.preventDefault(); onTableDrop(table.id); }}
+              style={{ cursor: dragging?.tableId === table.id ? "grabbing" : "grab" }}
+            >
+              {table.shape === "round" && (
+                <RoundTable
+                  table={table}
+                  selected={selectedId === table.id}
+                  dragOver={dragOverTableId === table.id}
+                  guests={tableGuests}
+                />
+              )}
+              {table.shape === "rect" && (
+                <RectTable
+                  table={table}
+                  selected={selectedId === table.id}
+                  dragOver={dragOverTableId === table.id}
+                  guests={tableGuests}
+                />
+              )}
+              {table.shape === "oval" && (
+                <OvalTable
+                  table={table}
+                  selected={selectedId === table.id}
+                  dragOver={dragOverTableId === table.id}
+                  guests={tableGuests}
+                />
+              )}
+              {table.shape === "row" && (
+                <RectTable
+                  table={table}
+                  selected={selectedId === table.id}
+                  dragOver={dragOverTableId === table.id}
+                  isRow
+                  guests={tableGuests}
+                />
+              )}
+              {table.shape === "presidium" && (
+                <PresidiumTable
+                  table={table}
+                  selected={selectedId === table.id}
+                  dragOver={dragOverTableId === table.id}
+                  guests={tableGuests}
+                />
+              )}
+            </g>
+          );
+        })}
 
         {/* Inline label editor */}
         {inlineEditor}

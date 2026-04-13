@@ -114,9 +114,14 @@ export async function exportGuestsDocx(
       tableHeader: true,
       children: [
         new TableCell({
+          children: [new Paragraph({ children: [new TextRun({ text: "#", bold: true, size: 18, color: "999999" })] })],
+          shading: { type: ShadingType.SOLID, color: "F5EDD8" },
+          width: { size: 500, type: WidthType.DXA },
+        }),
+        new TableCell({
           children: [new Paragraph({ children: [new TextRun({ text: "Имя", bold: true, size: 20 })] })],
           shading: { type: ShadingType.SOLID, color: "F5EDD8" },
-          width: { size: 4000, type: WidthType.DXA },
+          width: { size: 3500, type: WidthType.DXA },
         }),
         new TableCell({
           children: [new Paragraph({ children: [new TextRun({ text: "Телефон", bold: true, size: 20 })] })],
@@ -135,6 +140,11 @@ export async function exportGuestsDocx(
       (g, i) =>
         new TableRow({
           children: [
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: String(i + 1), bold: true, size: 18, color: "999999" })] })],
+              shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" },
+              width: { size: 500, type: WidthType.DXA },
+            }),
             new TableCell({
               children: [new Paragraph({ children: [new TextRun({ text: g.name, size: 20 })] })],
               shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" },
@@ -221,11 +231,11 @@ export function exportGuestsTxt(
       : "Без стола";
     lines.push(tableLabel);
     lines.push("-".repeat(40));
-    for (const g of group.guests) {
+    group.guests.forEach((g, i) => {
       const phone = g.phone ? `  ${g.phone}` : "";
       const note = g.note ? `  [${g.note}]` : "";
-      lines.push(`  ${g.name}${phone}${note}`);
-    }
+      lines.push(`  ${i + 1}. ${g.name}${phone}${note}`);
+    });
     lines.push("");
   }
 

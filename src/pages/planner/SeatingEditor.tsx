@@ -8,7 +8,7 @@ import HallCanvas from "./seating-editor/HallCanvas";
 const PLANS_API = "https://functions.poehali.dev/8192888d-d171-4174-9179-bae0a5946737";
 const GUESTS_API = "https://functions.poehali.dev/5a8e58c4-106e-46da-8f0c-84e078f2432c";
 
-export type TableShape = "round" | "rect" | "oval" | "row";
+export type TableShape = "round" | "rect" | "oval" | "row" | "presidium";
 
 export interface TableItem {
   id: string;
@@ -158,8 +158,8 @@ export default function SeatingEditor({
       const newTable: TableItem = {
         id: generateId(),
         shape,
-        label: `Стол ${tables.length + 1}`,
-        seats: shape === "row" ? 10 : 6,
+        label: shape === "presidium" ? "Президиум" : `Стол ${tables.length + 1}`,
+        seats: shape === "row" ? 10 : shape === "presidium" ? 8 : 6,
         x: 150 + Math.random() * (HALL_W - 300),
         y: 100 + Math.random() * (HALL_H - 200),
         color: TABLE_COLORS[0].value,
@@ -314,6 +314,7 @@ export default function SeatingEditor({
         <HallCanvas
           svgRef={svgRef}
           tables={tables}
+          guests={guests}
           hallW={HALL_W}
           hallH={HALL_H}
           selectedId={selectedId}
