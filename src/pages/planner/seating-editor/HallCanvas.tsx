@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect, useState } from "react";
 import { RoundTable, RectTable, OvalTable, PresidiumTable, GRID_SIZE } from "./tableShapes";
 import type { TableItem, GuestItem } from "../SeatingEditor";
 
@@ -8,7 +8,7 @@ interface HallCanvasProps {
   guests: GuestItem[];
   hallW: number;
   hallH: number;
-  onResizeHall: (w: number, h: number) => void; // оставляем для совместимости
+  onResizeHall: (w: number, h: number) => void;
   selectedId: string | null;
   dragging: { tableId: string; offsetX: number; offsetY: number } | null;
   dragOverTableId: string | null;
@@ -30,6 +30,9 @@ interface HallCanvasProps {
   onTouchTableEnd?: () => void;
   onTableTap?: (tableId: string) => void;
 }
+
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 3;
 
 export default function HallCanvas({
   svgRef,
@@ -58,69 +61,86 @@ export default function HallCanvas({
   onTouchTableEnd,
   onTableTap,
 }: HallCanvasProps) {
-  // Touch drag state для перемещения столов пальцем
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(1);
+  zoomRef.current = zoom;
+
   const touchDragRef = useRef<{
     tableId: string;
-    startX: number;
-    startY: number;
-    tableX: number;
-    tableY: number;
+    startX: number; startY: number;
+    tableX: number; tableY: number;
   } | null>(null);
   const touchStartTimeRef = useRef<number>(0);
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
 
-  // ─── SVG coordinate helper ────────────────────────────────────────────────
-  const getSvgPoint = useCallback((clientX: number, clientY: number) => {
-    const svg = svgRef.current;
-    if (!svg) return { x: 0, y: 0 };
-    const rect = svg.getBoundingClientRect();
-    return {
-      x: (clientX - rect.left) * (hallW / rect.width),
-      y: (clientY - rect.top) * (hallH / rect.height),
+  // ─── Ctrl+колесо = зум (десктоп). Обычное колесо = скролл ────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      setZoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * delta)));
     };
-  }, [svgRef, hallW, hallH]);
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
-  // ─── Touch на SVG: двигать стол пальцем ──────────────────────────────────
+  // ─── Touch: стол / pinch ──────────────────────────────────────────────────
   const handleSvgTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return; // 2 пальца — зум браузера, не трогаем
+    if (e.touches.length === 2) {
+      const dx = e.touches[1].clientX - e.touches[0].clientX;
+      const dy = e.touches[1].clientY - e.touches[0].clientY;
+      pinchRef.current = { dist: Math.hypot(dx, dy), zoom: zoomRef.current };
+      touchDragRef.current = null;
+      return;
+    }
+    if (e.touches.length !== 1) return;
     const touch = e.touches[0];
-    const pt = getSvgPoint(touch.clientX, touch.clientY);
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const z = zoomRef.current;
+    const ptX = (touch.clientX - rect.left) / z;
+    const ptY = (touch.clientY - rect.top) / z;
     touchStartTimeRef.current = Date.now();
-
     for (const table of [...tables].reverse()) {
-      const dx = Math.abs(pt.x - table.x);
-      const dy = Math.abs(pt.y - table.y);
-      if (dx < 60 && dy < 60) {
+      if (Math.abs(ptX - table.x) < 60 && Math.abs(ptY - table.y) < 60) {
         touchDragRef.current = {
           tableId: table.id,
-          startX: touch.clientX,
-          startY: touch.clientY,
-          tableX: table.x,
-          tableY: table.y,
+          startX: touch.clientX, startY: touch.clientY,
+          tableX: table.x, tableY: table.y,
         };
         e.stopPropagation();
         return;
       }
     }
-    // Не попали в стол — позволяем скроллить контейнер
-  }, [tables, getSvgPoint]);
+  }, [tables, svgRef]);
 
   const handleSvgTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchRef.current) {
+      e.preventDefault();
+      const dx = e.touches[1].clientX - e.touches[0].clientX;
+      const dy = e.touches[1].clientY - e.touches[0].clientY;
+      const dist = Math.hypot(dx, dy);
+      setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchRef.current.zoom * (dist / pinchRef.current.dist))));
+      return;
+    }
     if (!touchDragRef.current || !onTouchTableMove || e.touches.length !== 1) return;
     e.preventDefault();
     const touch = e.touches[0];
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const scaleX = hallW / rect.width;
-    const scaleY = hallH / rect.height;
-    const dx = (touch.clientX - touchDragRef.current.startX) * scaleX;
-    const dy = (touch.clientY - touchDragRef.current.startY) * scaleY;
+    const z = zoomRef.current;
+    const dx = (touch.clientX - touchDragRef.current.startX) / z;
+    const dy = (touch.clientY - touchDragRef.current.startY) / z;
     const newX = Math.max(30, Math.min(hallW - 30, touchDragRef.current.tableX + dx));
     const newY = Math.max(30, Math.min(hallH - 30, touchDragRef.current.tableY + dy));
     onTouchTableMove(touchDragRef.current.tableId, newX, newY);
-  }, [onTouchTableMove, hallW, hallH, svgRef]);
+  }, [onTouchTableMove, hallW, hallH]);
 
   const handleSvgTouchEnd = useCallback(() => {
+    pinchRef.current = null;
     if (!touchDragRef.current) return;
     const elapsed = Date.now() - touchStartTimeRef.current;
     const tableId = touchDragRef.current.tableId;
@@ -129,18 +149,17 @@ export default function HallCanvas({
     if (onTouchTableEnd) onTouchTableEnd();
   }, [onTableTap, onTouchTableEnd]);
 
-  // Passive:false чтобы preventDefault работал при движении стола
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const onMove = (e: TouchEvent) => {
-      if (touchDragRef.current) e.preventDefault();
+      if (touchDragRef.current || pinchRef.current) e.preventDefault();
     };
     svg.addEventListener("touchmove", onMove, { passive: false });
     return () => svg.removeEventListener("touchmove", onMove);
   }, [svgRef]);
 
-  // Grid lines
+  // Grid
   const gridLines: React.ReactNode[] = [];
   for (let x = 0; x <= hallW; x += GRID_SIZE) {
     gridLines.push(<line key={`vl${x}`} x1={x} y1={0} x2={x} y2={hallH} stroke="#ffffff08" strokeWidth={0.5} />);
@@ -149,7 +168,6 @@ export default function HallCanvas({
     gridLines.push(<line key={`hl${y}`} x1={0} y1={y} x2={hallW} y2={y} stroke="#ffffff08" strokeWidth={0.5} />);
   }
 
-  // Inline editor
   const inlineEditor = (() => {
     if (!inlineEditId) return null;
     const t = tables.find((tbl) => tbl.id === inlineEditId);
@@ -160,88 +178,98 @@ export default function HallCanvas({
         <input
           // @ts-expect-error xmlns needed for SVG foreignObject
           xmlns="http://www.w3.org/1999/xhtml"
-          autoFocus
-          value={inlineEditValue}
+          autoFocus value={inlineEditValue}
           onChange={(e) => onInlineEditChange(e.target.value)}
           onBlur={onInlineEditCommit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onInlineEditCommit();
-            if (e.key === "Escape") onInlineEditCancel();
-          }}
+          onKeyDown={(e) => { if (e.key === "Enter") onInlineEditCommit(); if (e.key === "Escape") onInlineEditCancel(); }}
           style={{ width: iW, height: iH, background: "#1a160f", border: "1.5px solid #c9a96e", borderRadius: 4, color: "#f5edd8", fontSize: 12, fontFamily: "Montserrat, sans-serif", textAlign: "center", outline: "none", padding: "0 6px" }}
         />
       </foreignObject>
     );
   })();
 
-  // SVG рендерится в натуральном размере (hallW × hallH пикселей)
-  // Контейнер скроллируется — как карта
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        overflow: "auto",
-        WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
-        background: "#0a0908",
-      }}
-    >
-      <div style={{ position: "relative", display: "inline-block", minWidth: "100%" }}>
-        <svg
-          ref={svgRef}
-          width={hallW}
-          height={hallH}
-          viewBox={`0 0 ${hallW} ${hallH}`}
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {/* Скроллируемый контейнер */}
+      <div
+        ref={containerRef}
+        style={{ width: "100%", height: "100%", overflow: "auto", background: "#0a0908" }}
+      >
+        {/* Зум-обёртка — растягивает пространство прокрутки */}
+        <div
           style={{
-            display: "block",
-            cursor: dragging ? "grabbing" : "default",
-            borderRadius: 4,
-            border: "1px solid #c9a96e20",
-            touchAction: "pan-x pan-y", // 1 палец — скролл; 2 пальца — зум браузера
+            width: hallW * zoom,
+            height: hallH * zoom,
+            position: "relative",
+            flexShrink: 0,
           }}
-          onMouseMove={onSvgMouseMove}
-          onMouseUp={onSvgMouseUp}
-          onMouseLeave={onSvgMouseUp}
-          onClick={onSvgClick}
-          onTouchStart={handleSvgTouchStart}
-          onTouchMove={handleSvgTouchMove}
-          onTouchEnd={handleSvgTouchEnd}
         >
-          <rect x={0} y={0} width={hallW} height={hallH} fill="#110f0a" />
-          {gridLines}
-          <rect x={2} y={2} width={hallW - 4} height={hallH - 4} fill="none" stroke="#c9a96e20" strokeWidth={1.5} />
-
-          {tables.map((table) => {
-            const tableGuests = guests
-              .filter((g) => g.tableId === table.id)
-              .sort((a, b) => (a.seatIndex ?? 9999) - (b.seatIndex ?? 9999));
-            return (
-              <g
-                key={table.id}
-                transform={`translate(${table.x}, ${table.y})`}
-                onMouseDown={(e) => onTableMouseDown(e, table.id)}
-                onDoubleClick={(e) => onTableDoubleClick(e, table.id)}
-                onMouseEnter={() => onTableDragEnter(table.id)}
-                onMouseLeave={onTableDragLeave}
-                onMouseUp={() => draggingGuest && onTableDrop(table.id)}
-                onDragOver={(e) => { e.preventDefault(); onTableDragEnter(table.id); }}
-                onDragLeave={onTableDragLeave}
-                onDrop={(e) => { e.preventDefault(); onTableDrop(table.id); }}
-                style={{ cursor: dragging?.tableId === table.id ? "grabbing" : "grab" }}
-              >
-                {table.shape === "round" && <RoundTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
-                {table.shape === "rect" && <RectTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
-                {table.shape === "oval" && <OvalTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
-                {table.shape === "presidium" && <PresidiumTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
-              </g>
-            );
-          })}
-          {inlineEditor}
-        </svg>
-        {/* Подсказка */}
-        <div style={{ position: "absolute", bottom: 4, right: 8, fontSize: 9, color: "#c9a96e40", fontFamily: "Montserrat, sans-serif", pointerEvents: "none", userSelect: "none" }}>
-          {hallW}×{hallH}
+          <svg
+            ref={svgRef}
+            width={hallW}
+            height={hallH}
+            viewBox={`0 0 ${hallW} ${hallH}`}
+            style={{
+              display: "block",
+              transformOrigin: "0 0",
+              transform: `scale(${zoom})`,
+              cursor: dragging ? "grabbing" : "default",
+              borderRadius: 4,
+              border: "1px solid #c9a96e20",
+              touchAction: "none",
+            }}
+            onMouseMove={onSvgMouseMove}
+            onMouseUp={onSvgMouseUp}
+            onMouseLeave={onSvgMouseUp}
+            onClick={onSvgClick}
+            onTouchStart={handleSvgTouchStart}
+            onTouchMove={handleSvgTouchMove}
+            onTouchEnd={handleSvgTouchEnd}
+          >
+            <rect x={0} y={0} width={hallW} height={hallH} fill="#110f0a" />
+            {gridLines}
+            <rect x={2} y={2} width={hallW - 4} height={hallH - 4} fill="none" stroke="#c9a96e20" strokeWidth={1.5} />
+            {tables.map((table) => {
+              const tableGuests = guests
+                .filter((g) => g.tableId === table.id)
+                .sort((a, b) => (a.seatIndex ?? 9999) - (b.seatIndex ?? 9999));
+              return (
+                <g
+                  key={table.id}
+                  transform={`translate(${table.x}, ${table.y})`}
+                  onMouseDown={(e) => onTableMouseDown(e, table.id)}
+                  onDoubleClick={(e) => onTableDoubleClick(e, table.id)}
+                  onMouseEnter={() => onTableDragEnter(table.id)}
+                  onMouseLeave={onTableDragLeave}
+                  onMouseUp={() => draggingGuest && onTableDrop(table.id)}
+                  onDragOver={(e) => { e.preventDefault(); onTableDragEnter(table.id); }}
+                  onDragLeave={onTableDragLeave}
+                  onDrop={(e) => { e.preventDefault(); onTableDrop(table.id); }}
+                  style={{ cursor: dragging?.tableId === table.id ? "grabbing" : "grab" }}
+                >
+                  {table.shape === "round" && <RoundTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
+                  {table.shape === "rect" && <RectTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
+                  {table.shape === "oval" && <OvalTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
+                  {table.shape === "presidium" && <PresidiumTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
+                </g>
+              );
+            })}
+            {inlineEditor}
+          </svg>
         </div>
+      </div>
+
+      {/* Кнопки зума — поверх контейнера */}
+      <div style={{ position: "absolute", bottom: 10, right: 10, display: "flex", flexDirection: "column", gap: 4, zIndex: 20 }}>
+        <button onClick={() => setZoom((z) => Math.min(MAX_ZOOM, +(z * 1.25).toFixed(2)))}
+          style={{ width: 30, height: 30, borderRadius: 6, background: "#1e1a12", border: "1px solid #c9a96e60", color: "var(--gold)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}
+          title="Увеличить (Ctrl+колесо)">+</button>
+        <button onClick={() => setZoom(1)}
+          style={{ width: 30, height: 30, borderRadius: 6, background: "#1e1a12", border: "1px solid #c9a96e30", color: "#c9a96e80", fontSize: 9, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Montserrat, sans-serif" }}
+          title="Сбросить">1:1</button>
+        <button onClick={() => setZoom((z) => Math.max(MIN_ZOOM, +(z * 0.8).toFixed(2)))}
+          style={{ width: 30, height: 30, borderRadius: 6, background: "#1e1a12", border: "1px solid #c9a96e60", color: "var(--gold)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}
+          title="Уменьшить">−</button>
       </div>
     </div>
   );

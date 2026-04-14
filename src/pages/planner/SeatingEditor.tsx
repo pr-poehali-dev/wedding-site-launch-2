@@ -72,9 +72,10 @@ export default function SeatingEditor({
   const [inlineEditValue, setInlineEditValue] = useState("");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Фиксированный большой размер зала — скроллируется как карта
-  const HALL_W = 900;
-  const HALL_H = 600;
+  // Размер зала по пресету — зал скроллируется и зумируется
+  const hallPreset = HALL_PRESETS.find((p) => p.shape === hallShape) ?? HALL_PRESETS[1];
+  const HALL_W = hallPreset.w;
+  const HALL_H = hallPreset.h;
 
   const selectedTable = tables.find((t) => t.id === selectedId) ?? null;
 
@@ -129,13 +130,12 @@ export default function SeatingEditor({
   const getSvgPointFromEvent = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
-    // Используем актуальный rect каждый раз
     const rect = svg.getBoundingClientRect();
-    const w = hallWRef.current;
-    const h = hallHRef.current;
+    // SVG рендерится в натуральном размере (width=hallW, без масштабирования)
+    // поэтому scale = 1, просто вычитаем левый-верхний угол SVG
     return {
-      x: (clientX - rect.left) * (w / rect.width),
-      y: (clientY - rect.top) * (h / rect.height),
+      x: clientX - rect.left,
+      y: clientY - rect.top,
     };
   }, []);
 

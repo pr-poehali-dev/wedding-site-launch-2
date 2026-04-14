@@ -30,6 +30,31 @@ export default function EditorLeftSidebar({
       className="w-full md:w-52 md:flex-shrink-0 flex flex-col gap-2 p-3 md:border-r overflow-y-auto"
       style={{ borderColor: "#c9a96e20", background: "#0d0b08" }}
     >
+      {/* Hall shape */}
+      <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--gold)" }}>
+        Форма зала
+      </p>
+      <div className="flex gap-1.5">
+        {HALL_PRESETS.map((preset) => (
+          <button
+            key={preset.shape}
+            title={preset.label}
+            onClick={() => onHallShapeChange(preset.shape)}
+            className="flex-1 flex flex-col items-center gap-1 py-2 rounded text-xs transition-all hover:opacity-80"
+            style={{
+              background: hallShape === preset.shape ? "#2a2010" : "#1a160f",
+              border: `1px solid ${hallShape === preset.shape ? "#c9a96e" : "#c9a96e30"}`,
+              color: hallShape === preset.shape ? "var(--gold)" : "#c9a96e60",
+            }}
+          >
+            <Icon name={HALL_SHAPE_ICONS[preset.shape]} size={16} />
+          </button>
+        ))}
+      </div>
+      <p className="text-xs -mt-1" style={{ color: "#c9a96e60" }}>
+        {HALL_PRESETS.find((p) => p.shape === hallShape)?.label}
+      </p>
+
       <div className="gold-divider my-1" />
 
       {/* Add table */}
