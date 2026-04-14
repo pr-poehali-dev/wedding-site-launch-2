@@ -27,7 +27,7 @@ export default function EditorLeftSidebar({
 }: EditorLeftSidebarProps) {
   return (
     <div
-      className="w-52 flex-shrink-0 flex flex-col gap-2 p-3 border-r overflow-y-auto"
+      className="w-full md:w-52 md:flex-shrink-0 flex flex-col gap-2 p-3 md:border-r overflow-y-auto"
       style={{ borderColor: "#c9a96e20", background: "#0d0b08" }}
     >
       {/* Hall shape */}

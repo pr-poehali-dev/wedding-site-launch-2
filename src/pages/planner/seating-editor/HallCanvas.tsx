@@ -187,6 +187,7 @@ export default function HallCanvas({
             display: "block",
             borderRadius: 6,
             border: "1px solid #c9a96e20",
+            touchAction: "auto",
           }}
           onMouseMove={onSvgMouseMove}
           onMouseUp={onSvgMouseUp}

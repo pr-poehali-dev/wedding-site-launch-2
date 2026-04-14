@@ -325,6 +325,34 @@ export default function SeatingEditor({
   }, []);
 
   const unassignedCount = guests.filter((g) => !g.tableId).length;
+  const [mobileTab, setMobileTab] = useState<"tables" | "guests">("tables");
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+
+  const hallCanvasProps = {
+    svgRef,
+    tables,
+    guests,
+    hallW: HALL_W,
+    hallH: HALL_H,
+    onResizeHall: (w: number, h: number) => { setHallW(w); setHallH(h); },
+    selectedId,
+    dragging,
+    dragOverTableId,
+    draggingGuest,
+    inlineEditId,
+    inlineEditValue,
+    onSvgMouseMove: handleSvgMouseMove,
+    onSvgMouseUp: handleSvgMouseUp,
+    onSvgClick: handleSvgClick,
+    onTableMouseDown: handleTableMouseDown,
+    onTableDoubleClick: handleTableDoubleClick,
+    onTableDragEnter: handleTableDragEnter,
+    onTableDragLeave: handleTableDragLeave,
+    onTableDrop: handleTableDrop,
+    onInlineEditChange: setInlineEditValue,
+    onInlineEditCommit: commitInlineEdit,
+    onInlineEditCancel: () => setInlineEditId(null),
+  };
 
   return (
     <div
@@ -340,7 +368,8 @@ export default function SeatingEditor({
         onDownloadPng={downloadPng}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* ── Desktop layout (md+) ── */}
+      <div className="hidden md:flex flex-1 overflow-hidden">
         <EditorLeftSidebar
           selectedTable={selectedTable}
           hallShape={hallShape}
@@ -349,33 +378,7 @@ export default function SeatingEditor({
           onDeleteSelected={deleteSelected}
           onHallShapeChange={setHallShape}
         />
-
-        <HallCanvas
-          svgRef={svgRef}
-          tables={tables}
-          guests={guests}
-          hallW={HALL_W}
-          hallH={HALL_H}
-          onResizeHall={(w, h) => { setHallW(w); setHallH(h); }}
-          selectedId={selectedId}
-          dragging={dragging}
-          dragOverTableId={dragOverTableId}
-          draggingGuest={draggingGuest}
-          inlineEditId={inlineEditId}
-          inlineEditValue={inlineEditValue}
-          onSvgMouseMove={handleSvgMouseMove}
-          onSvgMouseUp={handleSvgMouseUp}
-          onSvgClick={handleSvgClick}
-          onTableMouseDown={handleTableMouseDown}
-          onTableDoubleClick={handleTableDoubleClick}
-          onTableDragEnter={handleTableDragEnter}
-          onTableDragLeave={handleTableDragLeave}
-          onTableDrop={handleTableDrop}
-          onInlineEditChange={setInlineEditValue}
-          onInlineEditCommit={commitInlineEdit}
-          onInlineEditCancel={() => setInlineEditId(null)}
-        />
-
+        <HallCanvas {...hallCanvasProps} />
         <EditorRightSidebar
           guests={guests}
           tables={tables}
@@ -385,6 +388,90 @@ export default function SeatingEditor({
           onGuestDragEnd={() => setDraggingGuest(null)}
           onReorderGuests={onReorderGuests}
         />
+      </div>
+
+      {/* ── Mobile layout ── */}
+      <div className="flex md:hidden flex-col flex-1 overflow-hidden">
+        {/* Canvas — fills available space */}
+        <div className="flex-1 overflow-hidden" style={{ touchAction: "manipulation" }}>
+          <HallCanvas {...hallCanvasProps} />
+        </div>
+
+        {/* Bottom tab bar */}
+        <div
+          style={{
+            background: "#0d0b08",
+            borderTop: "1px solid #c9a96e30",
+            flexShrink: 0,
+          }}
+        >
+          {/* Tab buttons */}
+          <div className="flex" style={{ borderBottom: "1px solid #c9a96e20" }}>
+            {(["tables", "guests"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  if (mobilePanelOpen && mobileTab === tab) {
+                    setMobilePanelOpen(false);
+                  } else {
+                    setMobileTab(tab);
+                    setMobilePanelOpen(true);
+                  }
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs uppercase tracking-widest transition-all"
+                style={{
+                  color: mobilePanelOpen && mobileTab === tab ? "var(--gold)" : "#c9a96e60",
+                  borderBottom: mobilePanelOpen && mobileTab === tab ? "2px solid var(--gold)" : "2px solid transparent",
+                  background: "transparent",
+                }}
+              >
+                {tab === "tables" ? "Столы" : `Гости${unassignedCount > 0 ? ` (${unassignedCount})` : ""}`}
+              </button>
+            ))}
+            {/* Close arrow */}
+            {mobilePanelOpen && (
+              <button
+                onClick={() => setMobilePanelOpen(false)}
+                className="px-3 flex items-center"
+                style={{ color: "#c9a96e60" }}
+              >
+                ▼
+              </button>
+            )}
+          </div>
+
+          {/* Sliding panel */}
+          {mobilePanelOpen && (
+            <div
+              style={{
+                maxHeight: "45vh",
+                overflowY: "auto",
+              }}
+            >
+              {mobileTab === "tables" && (
+                <EditorLeftSidebar
+                  selectedTable={selectedTable}
+                  hallShape={hallShape}
+                  onAddTable={(s) => { addTable(s); setMobilePanelOpen(false); }}
+                  onUpdateSelected={updateSelected}
+                  onDeleteSelected={() => { deleteSelected(); setMobilePanelOpen(false); }}
+                  onHallShapeChange={setHallShape}
+                />
+              )}
+              {mobileTab === "guests" && (
+                <EditorRightSidebar
+                  guests={guests}
+                  tables={tables}
+                  guestSearch={guestSearch}
+                  onGuestSearchChange={setGuestSearch}
+                  onGuestDragStart={handleGuestDragStart}
+                  onGuestDragEnd={() => setDraggingGuest(null)}
+                  onReorderGuests={onReorderGuests}
+                />
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

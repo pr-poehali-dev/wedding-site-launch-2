@@ -172,11 +172,11 @@ export default function EditorRightSidebar({
 
   return (
     <div
-      className="w-56 flex-shrink-0 flex flex-col border-l overflow-y-auto"
+      className="w-full md:w-56 md:flex-shrink-0 flex flex-col md:border-l overflow-y-auto"
       style={{ borderColor: "#c9a96e20", background: "#0d0b08" }}
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 px-3 pt-3 pb-2" style={{ background: "#0d0b08" }}>
+      <div className="px-3 pt-3 pb-2" style={{ background: "#0d0b08" }}>
         <p className="text-xs uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>
           Гости
         </p>
