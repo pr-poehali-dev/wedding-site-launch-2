@@ -147,8 +147,8 @@ export default function PlannerPage() {
 
       {/* Редактор */}
       {view === "editor" && activePlan && (
-        <div className="flex flex-col h-[calc(100vh-65px)]">
-          <div className="flex items-center gap-4 px-6 py-3" style={{ borderBottom: "1px solid rgba(201,169,110,0.1)", background: "rgba(201,169,110,0.03)" }}>
+        <div className="flex flex-col" style={{ minHeight: "calc(100vh - 65px)" }}>
+          <div className="flex items-center gap-4 px-6 py-3 flex-shrink-0" style={{ borderBottom: "1px solid rgba(201,169,110,0.1)", background: "rgba(201,169,110,0.03)" }}>
             <button onClick={() => setView("landing")} className="flex items-center gap-1 font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.4)" }}>
               <Icon name="ChevronLeft" size={14} /> Назад
             </button>
@@ -161,7 +161,7 @@ export default function PlannerPage() {
               Гости ({guests.length})
             </button>
           </div>
-          <div className="flex-1 md:overflow-hidden overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             <SeatingEditor
               plan={{ id: String(activePlan.id), title: planTitle }}
               tables={tables}

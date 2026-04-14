@@ -141,8 +141,8 @@ export default function SeatingEditor({
     (e: React.MouseEvent) => {
       if (!dragging) return;
       const pt = getSvgPoint(e.clientX, e.clientY);
-      const newX = Math.max(20, Math.min(HALL_W - 20, pt.x - dragging.offsetX));
-      const newY = Math.max(20, Math.min(HALL_H - 20, pt.y - dragging.offsetY));
+      const newX = Math.max(60, Math.min(HALL_W - 60, pt.x - dragging.offsetX));
+      const newY = Math.max(60, Math.min(HALL_H - 60, pt.y - dragging.offsetY));
       onUpdateTables(
         tables.map((t) =>
           t.id === dragging.tableId ? { ...t, x: newX, y: newY } : t
@@ -174,8 +174,8 @@ export default function SeatingEditor({
           ? "Президиум"
           : `Стол ${tables.filter((t) => t.shape !== "presidium").length + 1}`,
         seats: shape === "presidium" ? 8 : 6,
-        x: 150 + Math.random() * (HALL_W - 300),
-        y: 100 + Math.random() * (HALL_H - 200),
+        x: 120 + Math.random() * Math.max(60, HALL_W - 240),
+        y: 100 + Math.random() * Math.max(60, HALL_H - 200),
         color: TABLE_COLORS[0].value,
       };
       const updated = [...tables, newTable];
@@ -360,7 +360,7 @@ export default function SeatingEditor({
 
   return (
     <div
-      className="flex flex-col md:h-full font-montserrat"
+      className="flex flex-col font-montserrat"
       style={{ background: "var(--velvet)", color: "var(--cream)" }}
     >
       <EditorToolbar
@@ -374,7 +374,7 @@ export default function SeatingEditor({
       />
 
       {/* ── Desktop layout (md+) ── */}
-      <div className="hidden md:flex flex-1 overflow-hidden">
+      <div className="hidden md:flex" style={{ minHeight: "calc(100vh - 110px)" }}>
         <EditorLeftSidebar
           selectedTable={selectedTable}
           hallShape={hallShape}

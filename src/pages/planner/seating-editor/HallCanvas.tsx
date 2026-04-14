@@ -124,8 +124,8 @@ export default function HallCanvas({
     const scaleY = hallH / rect.height;
     const dx = (touch.clientX - touchDragRef.current.startX) * scaleX;
     const dy = (touch.clientY - touchDragRef.current.startY) * scaleY;
-    const newX = Math.max(20, Math.min(hallW - 20, touchDragRef.current.tableX + dx));
-    const newY = Math.max(20, Math.min(hallH - 20, touchDragRef.current.tableY + dy));
+    const newX = Math.max(60, Math.min(hallW - 60, touchDragRef.current.tableX + dx));
+    const newY = Math.max(60, Math.min(hallH - 60, touchDragRef.current.tableY + dy));
     onTouchTableMove(touchDragRef.current.tableId, newX, newY);
   }, [onTouchTableMove, hallW, hallH, svgRef]);
 

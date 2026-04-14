@@ -320,24 +320,30 @@ export default function AddGuestForm({
       )}
 
       {/* Bulk / import toggle */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onToggleBulk}
-          className="text-xs flex items-center gap-1.5 transition-all hover:opacity-80"
-          style={{ color: "#c9a96e80" }}
-        >
-          <Icon name={showBulk ? "ChevronUp" : "ChevronDown"} size={12} />
-          Массовое добавление
-        </button>
+      <div className="flex items-center gap-2 flex-wrap mt-1">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={importLoading}
-          className="text-xs flex items-center gap-1.5 transition-all hover:opacity-80"
-          style={{ color: importLoading ? "#c9a96e40" : "#c9a96e80" }}
+          className="flex items-center gap-2 px-4 py-2 rounded text-xs uppercase tracking-wider transition-all hover:opacity-90"
+          style={{
+            background: importLoading ? "#1a160f" : "#1e1a0a",
+            border: "1.5px solid #c9a96e",
+            color: importLoading ? "#c9a96e40" : "var(--gold)",
+            fontWeight: 600,
+            boxShadow: importLoading ? "none" : "0 0 8px #c9a96e30",
+          }}
           title="Загрузить список из Word (.docx) или текстового файла (.txt)"
         >
-          <Icon name={importLoading ? "Loader" : "FileUp"} size={12} />
-          {importLoading ? "Читаю файл..." : "Загрузить из Word / .txt"}
+          <Icon name={importLoading ? "Loader" : "FileUp"} size={14} />
+          {importLoading ? "Читаю файл..." : "Загрузить из файла (.docx / .txt)"}
+        </button>
+        <button
+          onClick={onToggleBulk}
+          className="text-xs flex items-center gap-1.5 transition-all hover:opacity-80"
+          style={{ color: "#c9a96e60" }}
+        >
+          <Icon name={showBulk ? "ChevronUp" : "ChevronDown"} size={12} />
+          Вручную
         </button>
         <input
           ref={fileInputRef}
