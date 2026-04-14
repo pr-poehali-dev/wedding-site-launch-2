@@ -91,9 +91,9 @@ export function RoundTable({
             {guest && (
               <text
                 x={d.cx}
-                y={d.cy + (d.cy > 0 ? 9 : -7)}
+                y={d.cy + (d.cy > 0 ? 10 : -8)}
                 textAnchor="middle"
-                fontSize={4}
+                fontSize={5}
                 fontFamily="Montserrat, sans-serif"
                 fill="#c9a96e"
                 style={{ pointerEvents: "none", userSelect: "none" }}
@@ -117,7 +117,7 @@ export function RoundTable({
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={6}
+        fontSize={Math.max(7, r * 0.55)}
         fontFamily="Montserrat, sans-serif"
         fill="#f5edd8"
         style={{ pointerEvents: "none", userSelect: "none" }}
@@ -197,7 +197,7 @@ export function RectTable({
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={6}
+        fontSize={Math.max(6, h * 0.5)}
         fontFamily="Montserrat, sans-serif"
         fill="#f5edd8"
         style={{ pointerEvents: "none", userSelect: "none" }}
@@ -265,7 +265,7 @@ export function OvalTable({
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={6}
+        fontSize={Math.max(6, ry * 0.55)}
         fontFamily="Montserrat, sans-serif"
         fill="#f5edd8"
         style={{ pointerEvents: "none", userSelect: "none" }}
@@ -312,7 +312,7 @@ export function PresidiumTable({
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={5}
+        fontSize={Math.max(5, h * 0.6)}
         fontFamily="Montserrat, sans-serif"
         fill="#c9a96e"
         fontWeight="bold"

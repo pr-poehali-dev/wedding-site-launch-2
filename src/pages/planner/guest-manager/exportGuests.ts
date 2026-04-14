@@ -127,12 +127,12 @@ export async function exportGuestsDocx(
         new TableCell({
           children: [new Paragraph({ children: [new TextRun({ text: "#", bold: true, size: 18, color: "999999" })] })],
           shading: { type: ShadingType.SOLID, color: "F5EDD8" },
-          width: { size: 500, type: WidthType.DXA },
+          width: { size: 360, type: WidthType.DXA },
         }),
         new TableCell({
           children: [new Paragraph({ children: [new TextRun({ text: "Имя", bold: true, size: 20 })] })],
           shading: { type: ShadingType.SOLID, color: "F5EDD8" },
-          width: { size: 3500, type: WidthType.DXA },
+          width: { size: 3640, type: WidthType.DXA },
         }),
         new TableCell({
           children: [new Paragraph({ children: [new TextRun({ text: "Телефон", bold: true, size: 20 })] })],
@@ -158,11 +158,12 @@ export async function exportGuestsDocx(
                 ...(totalSeatsLegacy > 0 ? [new TextRun({ text: `/${totalSeatsLegacy}`, size: 14, color: "BBBBBB" })] : []),
               ]})],
               shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" },
-              width: { size: 700, type: WidthType.DXA },
+              width: { size: 360, type: WidthType.DXA },
             }),
             new TableCell({
               children: [new Paragraph({ children: [new TextRun({ text: g.name, size: 20 })] })],
               shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" },
+              width: { size: 3640, type: WidthType.DXA },
             }),
             new TableCell({
               children: [
@@ -302,8 +303,8 @@ export async function exportGuestsDocxWithMap(
     const headerRow = new TableRow({
       tableHeader: true,
       children: [
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "#", bold: true, size: 18, color: "999999" })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 500, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Имя", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 3500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "#", bold: true, size: 18, color: "999999" })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 360, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Имя", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 3640, type: WidthType.DXA } }),
         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Телефон", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 2500, type: WidthType.DXA } }),
         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Заметка", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 3000, type: WidthType.DXA } }),
       ],
@@ -320,9 +321,9 @@ export async function exportGuestsDocxWithMap(
               ...(totalSeats > 0 ? [new TextRun({ text: `/${totalSeats}`, size: 14, color: "BBBBBB" })] : []),
             ]})],
             shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" },
-            width: { size: 700, type: WidthType.DXA },
+            width: { size: 360, type: WidthType.DXA },
           }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.name, size: 20 })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.name, size: 20 })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" }, width: { size: 3640, type: WidthType.DXA } }),
           new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.phone || "—", size: 20, color: "666666" })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" } }),
           new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.note || "", size: 20, color: "888888" })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" } }),
         ],

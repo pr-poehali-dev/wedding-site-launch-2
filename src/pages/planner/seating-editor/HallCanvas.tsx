@@ -243,7 +243,7 @@ export default function HallCanvas({
       className="w-full h-full overflow-hidden p-1 md:p-4 md:overflow-auto"
       style={{ display: "flex", alignItems: "flex-start", justifyContent: "stretch" }}
     >
-      <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+      <div style={{ position: "relative", flex: 1, minWidth: 0, overflow: "visible" }}>
         <svg
           ref={svgRef}
           viewBox={`0 0 ${hallW} ${hallH}`}
@@ -254,7 +254,7 @@ export default function HallCanvas({
             display: "block",
             borderRadius: 6,
             border: "1px solid #c9a96e20",
-            touchAction: "none",
+            touchAction: "pan-y pinch-zoom",
           }}
           onMouseMove={onSvgMouseMove}
           onMouseUp={onSvgMouseUp}
@@ -297,22 +297,26 @@ export default function HallCanvas({
           {inlineEditor}
         </svg>
 
-        {/* Resize handles */}
+        {/* Resize handles — внутри SVG-элемента */}
         <div>
-          <div onMouseDown={(e) => handleResizeMouseDown(e, "right")} title="Ширина"
-            style={{ position: "absolute", top: "10%", right: -6, width: HANDLE + 4, height: "80%", cursor: "ew-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
-            <div style={{ width: 4, height: "60%", minHeight: 32, borderRadius: 4, background: resizeEdge ? "#c9a96e" : "#c9a96e50" }} />
+          {/* Правый край */}
+          <div onMouseDown={(e) => handleResizeMouseDown(e, "right")} title="Растянуть по ширине"
+            style={{ position: "absolute", top: "15%", right: 2, width: 14, height: "70%", cursor: "ew-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: 4 }}>
+            <div style={{ width: 4, height: "70%", minHeight: 24, borderRadius: 4, background: resizeEdge === "right" || resizeEdge === "corner" ? "#c9a96e" : "#c9a96e60", boxShadow: "0 0 4px #c9a96e40" }} />
           </div>
-          <div onMouseDown={(e) => handleResizeMouseDown(e, "bottom")} title="Высота"
-            style={{ position: "absolute", bottom: -6, left: "10%", height: HANDLE + 4, width: "80%", cursor: "ns-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
-            <div style={{ height: 4, width: "60%", minWidth: 32, borderRadius: 4, background: resizeEdge ? "#c9a96e" : "#c9a96e50" }} />
+          {/* Нижний край */}
+          <div onMouseDown={(e) => handleResizeMouseDown(e, "bottom")} title="Растянуть по высоте"
+            style={{ position: "absolute", bottom: 2, left: "15%", height: 14, width: "70%", cursor: "ns-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: 4 }}>
+            <div style={{ height: 4, width: "70%", minWidth: 24, borderRadius: 4, background: resizeEdge === "bottom" || resizeEdge === "corner" ? "#c9a96e" : "#c9a96e60", boxShadow: "0 0 4px #c9a96e40" }} />
           </div>
-          <div onMouseDown={(e) => handleResizeMouseDown(e, "corner")} title="Размер"
-            style={{ position: "absolute", bottom: -6, right: -6, width: HANDLE + 8, height: HANDLE + 8, cursor: "nwse-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 11 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: resizeEdge === "corner" ? "#c9a96e" : "#c9a96e60" }} />
+          {/* Угол */}
+          <div onMouseDown={(e) => handleResizeMouseDown(e, "corner")} title="Изменить размер"
+            style={{ position: "absolute", bottom: 2, right: 2, width: 18, height: 18, cursor: "nwse-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 11, borderRadius: 4, background: resizeEdge === "corner" ? "#c9a96e30" : "transparent" }}>
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: resizeEdge === "corner" ? "#c9a96e" : "#c9a96e80", boxShadow: "0 0 4px #c9a96e40" }} />
           </div>
-          <div style={{ position: "absolute", bottom: 6, right: 14, fontSize: 9, color: "#c9a96e40", fontFamily: "Montserrat, sans-serif", pointerEvents: "none", userSelect: "none" }}>
-            {hallW} × {hallH}
+          {/* Размер */}
+          <div style={{ position: "absolute", bottom: 4, right: 22, fontSize: 8, color: "#c9a96e50", fontFamily: "Montserrat, sans-serif", pointerEvents: "none", userSelect: "none", whiteSpace: "nowrap" }}>
+            {hallW}×{hallH}
           </div>
         </div>
       </div>
