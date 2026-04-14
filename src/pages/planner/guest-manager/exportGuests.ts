@@ -11,6 +11,7 @@ import {
   WidthType,
   AlignmentType,
   ShadingType,
+  ImageRun,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { GuestItem, TableItem } from "../SeatingEditor";
@@ -217,6 +218,121 @@ export async function exportGuestsDocx(
 
   const blob = await Packer.toBlob(doc);
   const filename = `${(planTitle || "гости").replace(/[^а-яёa-z0-9\s]/gi, "")}_рассадка.docx`;
+  saveAs(blob, filename);
+}
+
+// ── DOCX с картой зала ───────────────────────────────────────────────────────
+
+export async function exportGuestsDocxWithMap(
+  guests: GuestItem[],
+  tables: TableItem[],
+  planTitle: string,
+  hallPngBase64: string,
+  hallW: number,
+  hallH: number
+) {
+  const groups = buildGroups(guests, tables);
+  const children: (Paragraph | Table)[] = [];
+
+  // Title
+  children.push(
+    new Paragraph({
+      text: planTitle || "План рассадки",
+      heading: HeadingLevel.TITLE,
+      spacing: { after: 200 },
+    })
+  );
+
+  // Stats
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: `Гостей: ${guests.length}`, size: 22, color: "666666" }),
+        new TextRun({ text: `   •   Столов: ${tables.length}`, size: 22, color: "666666" }),
+        new TextRun({ text: `   •   Без места: ${guests.filter((g) => !g.tableId).length}`, size: 22, color: "666666" }),
+      ],
+      spacing: { after: 300 },
+    })
+  );
+
+  // Схема зала — картинка
+  const base64Data = hallPngBase64.replace(/^data:image\/png;base64,/, "");
+  const imgBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+  // Масштабируем под ширину страницы Word (~15 см = 8505 DXA)
+  const maxW = 8505;
+  const ratio = hallH / hallW;
+  const imgW = maxW;
+  const imgH = Math.round(maxW * ratio);
+
+  children.push(
+    new Paragraph({
+      children: [
+        new ImageRun({
+          data: imgBytes,
+          transformation: { width: Math.round(imgW / 914 * 96), height: Math.round(imgH / 914 * 96) },
+          type: "png",
+        }),
+      ],
+      spacing: { after: 400 },
+    })
+  );
+
+  // Гости по столам
+  for (const group of groups) {
+    const tableNum = group.table?.shape === "presidium" ? "№0  " : "";
+    const tableLabel = group.table ? group.table.label : "Без стола";
+    const seats = group.table ? `(${group.table.seats} мест)` : "";
+
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `${tableNum}${tableLabel}  `, bold: true, size: 28, color: "2C2008" }),
+          new TextRun({ text: seats, size: 22, color: "999999" }),
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 360, after: 120 },
+        border: { bottom: { color: "C9A96E", style: BorderStyle.SINGLE, size: 6 } },
+      })
+    );
+
+    const headerRow = new TableRow({
+      tableHeader: true,
+      children: [
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "#", bold: true, size: 18, color: "999999" })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Имя", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 3500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Телефон", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 2500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Заметка", bold: true, size: 20 })] })], shading: { type: ShadingType.SOLID, color: "F5EDD8" }, width: { size: 3000, type: WidthType.DXA } }),
+      ],
+    });
+
+    const sorted = [...group.guests].sort((a, b) => (a.seatIndex ?? 999) - (b.seatIndex ?? 999));
+    const dataRows = sorted.map((g, i) =>
+      new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(i + 1), bold: true, size: 18, color: "8B6A20" })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" }, width: { size: 500, type: WidthType.DXA } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.name, size: 20 })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.phone || "—", size: 20, color: "666666" })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: g.note || "", size: 20, color: "888888" })] })], shading: { type: ShadingType.SOLID, color: i % 2 === 0 ? "FFFFFF" : "FDFAF3" } }),
+        ],
+      })
+    );
+
+    children.push(new Table({ rows: [headerRow, ...dataRows], width: { size: 9500, type: WidthType.DXA } }));
+    children.push(new Paragraph({ text: "", spacing: { after: 100 } }));
+  }
+
+  const doc = new Document({
+    sections: [{ properties: {}, children }],
+    styles: {
+      paragraphStyles: [
+        { id: "Title", name: "Title", basedOn: "Normal", run: { size: 48, bold: true, color: "1A160F" }, paragraph: { alignment: AlignmentType.LEFT } },
+        { id: "Heading2", name: "Heading 2", basedOn: "Normal", run: { size: 28, bold: true, color: "2C2008" } },
+      ],
+    },
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const filename = `${(planTitle || "рассадка").replace(/[^а-яёa-z0-9\s]/gi, "")}_рассадка.docx`;
   saveAs(blob, filename);
 }
 

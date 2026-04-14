@@ -4,6 +4,8 @@ import EditorLeftSidebar from "./seating-editor/EditorLeftSidebar";
 import EditorRightSidebar from "./seating-editor/EditorRightSidebar";
 import EditorToolbar from "./seating-editor/EditorToolbar";
 import HallCanvas from "./seating-editor/HallCanvas";
+import { renderHallPng } from "./seating-editor/renderHallPng";
+import { exportGuestsDocxWithMap } from "./guest-manager/exportGuests";
 
 const PLANS_API = "https://functions.poehali.dev/8192888d-d171-4174-9179-bae0a5946737";
 const GUESTS_API = "https://functions.poehali.dev/5a8e58c4-106e-46da-8f0c-84e078f2432c";
@@ -280,43 +282,21 @@ export default function SeatingEditor({
   const downloadPng = useCallback(async () => {
     const svg = svgRef.current;
     if (!svg) return;
-
-    const scale = 2;
-    const w = HALL_W * scale;
-    const h = HALL_H * scale;
-
-    // Serialize SVG and add explicit width/height so canvas renders fully
-    const serializer = new XMLSerializer();
-    let svgStr = serializer.serializeToString(svg);
-    // Ensure width/height attributes are set (viewBox alone is not enough for canvas)
-    svgStr = svgStr.replace(
-      /(<svg[^>]*?)(\s*>)/,
-      `$1 width="${w}" height="${h}"$2`
-    );
-
-    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#110f0a";
-      ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.download = `${plan.title || "seating"}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    };
-    img.onerror = () => URL.revokeObjectURL(url);
-    img.src = url;
+    const dataUrl = await renderHallPng(svg, HALL_W, HALL_H, false);
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `${plan.title || "seating"}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }, [plan.title, HALL_W, HALL_H]);
+
+  const downloadDocx = useCallback(async () => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const pngBase64 = await renderHallPng(svg, HALL_W, HALL_H, true);
+    await exportGuestsDocxWithMap(guests, tables, plan.title, pngBase64, HALL_W, HALL_H);
+  }, [guests, tables, plan.title, HALL_W, HALL_H]);
 
   useEffect(() => {
     return () => {
@@ -390,6 +370,7 @@ export default function SeatingEditor({
         unassignedCount={unassignedCount}
         onOpenGuests={onOpenGuests}
         onDownloadPng={downloadPng}
+        onDownloadDocx={downloadDocx}
       />
 
       {/* ── Desktop layout (md+) ── */}
@@ -531,35 +512,61 @@ export default function SeatingEditor({
                 </div>
                 {/* Гости блока */}
                 <div style={{ padding: "2px 8px 6px" }}>
-                  {block.guests.filter((g) => !guestSearch || g.name.toLowerCase().includes(guestSearch.toLowerCase())).map((guest) => (
-                    <div key={guest.id}
-                      onClick={() => {
-                        if (selectedId) {
-                          handleSeatGuestMobile(guest.id, selectedId);
-                        }
-                      }}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "8px 10px", marginBottom: 3, borderRadius: 5,
-                        background: selectedId && guest.tableId !== selectedId ? "#1e1a10" : "#161209",
-                        border: `1px solid ${selectedId && guest.tableId !== selectedId ? "#c9a96e40" : "#c9a96e15"}`,
-                        cursor: selectedId ? "pointer" : "default",
-                      }}>
-                      <span style={{ flex: 1, color: "var(--cream)", fontSize: 13 }}>{guest.name}</span>
-                      {guest.seatIndex != null && guest.tableId && (
-                        <span style={{ color: "#c9a96e60", fontSize: 10 }}>место {guest.seatIndex + 1}</span>
-                      )}
-                      {selectedId && guest.tableId !== selectedId && (
-                        <span style={{ color: "#c9a96e", fontSize: 11 }}>→</span>
-                      )}
-                      {guest.tableId && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleSeatGuestMobile(guest.id, null); }}
-                          style={{ color: "#c9a96e40", fontSize: 11, background: "none", border: "none", cursor: "pointer", padding: "2px 4px" }}
-                          title="Убрать со стола">✕</button>
-                      )}
-                    </div>
-                  ))}
+                  {block.guests.filter((g) => !guestSearch || g.name.toLowerCase().includes(guestSearch.toLowerCase())).map((guest, gIdx) => {
+                    const filteredList = block.guests.filter((g) => !guestSearch || g.name.toLowerCase().includes(guestSearch.toLowerCase()));
+                    const canUp = gIdx > 0 && block.tableId;
+                    const canDown = gIdx < filteredList.length - 1 && block.tableId;
+                    const moveMobile = (dir: -1 | 1) => {
+                      if (!onReorderGuests || !block.tableId) return;
+                      const arr = [...block.guests];
+                      const realIdx = arr.findIndex((g) => g.id === guest.id);
+                      const swapIdx = realIdx + dir;
+                      if (swapIdx < 0 || swapIdx >= arr.length) return;
+                      [arr[realIdx], arr[swapIdx]] = [arr[swapIdx], arr[realIdx]];
+                      const withIndex = arr.map((g, i) => ({ ...g, seatIndex: i }));
+                      const merged = guests.map((g) => {
+                        if (g.tableId !== block.tableId) return g;
+                        return withIndex.find((wg) => wg.id === g.id) ?? g;
+                      });
+                      onReorderGuests(merged);
+                    };
+                    return (
+                      <div key={guest.id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          padding: "8px 10px", marginBottom: 3, borderRadius: 5,
+                          background: selectedId && guest.tableId !== selectedId ? "#1e1a10" : "#161209",
+                          border: `1px solid ${selectedId && guest.tableId !== selectedId ? "#c9a96e40" : "#c9a96e15"}`,
+                        }}>
+                        {/* Номер */}
+                        {block.tableId && (
+                          <span style={{ color: "#c9a96e80", fontSize: 11, minWidth: 16, flexShrink: 0 }}>{gIdx + 1}.</span>
+                        )}
+                        <span
+                          style={{ flex: 1, color: "var(--cream)", fontSize: 13, cursor: selectedId ? "pointer" : "default" }}
+                          onClick={() => { if (selectedId) handleSeatGuestMobile(guest.id, selectedId); }}
+                        >{guest.name}</span>
+                        {selectedId && guest.tableId !== selectedId && (
+                          <span style={{ color: "#c9a96e", fontSize: 13 }}>→</span>
+                        )}
+                        {/* Стрелки ↑↓ */}
+                        {block.tableId && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
+                            <button onClick={() => moveMobile(-1)} disabled={!canUp}
+                              style={{ background: "none", border: "none", cursor: canUp ? "pointer" : "default", color: canUp ? "#c9a96e" : "#c9a96e20", fontSize: 12, padding: "1px 3px", lineHeight: 1 }}>▲</button>
+                            <button onClick={() => moveMobile(1)} disabled={!canDown}
+                              style={{ background: "none", border: "none", cursor: canDown ? "pointer" : "default", color: canDown ? "#c9a96e" : "#c9a96e20", fontSize: 12, padding: "1px 3px", lineHeight: 1 }}>▼</button>
+                          </div>
+                        )}
+                        {guest.tableId && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleSeatGuestMobile(guest.id, null); }}
+                            style={{ color: "#c9a96e40", fontSize: 13, background: "none", border: "none", cursor: "pointer", padding: "2px 4px" }}
+                            title="Убрать со стола">✕</button>
+                        )}
+                      </div>
+                    );
+                  })}
                   {block.guests.length === 0 && (
                     <p style={{ color: "#c9a96e30", fontSize: 12, padding: "4px 2px" }}>Пусто</p>
                   )}

@@ -7,6 +7,7 @@ interface EditorToolbarProps {
   unassignedCount: number;
   onOpenGuests?: () => void;
   onDownloadPng: () => void;
+  onDownloadDocx: () => void;
 }
 
 export default function EditorToolbar({
@@ -16,10 +17,11 @@ export default function EditorToolbar({
   unassignedCount,
   onOpenGuests,
   onDownloadPng,
+  onDownloadDocx,
 }: EditorToolbarProps) {
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2 border-b"
+      className="flex items-center gap-2 px-4 py-2 border-b flex-wrap"
       style={{ borderColor: "#c9a96e30", background: "#0f0d09" }}
     >
       <span className="text-xs uppercase tracking-widest" style={{ color: "var(--gold)" }}>
@@ -60,9 +62,19 @@ export default function EditorToolbar({
         </button>
       )}
       <button
+        onClick={onDownloadDocx}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
+        style={{ background: "#1e1a12", border: "1px solid #c9a96e50", color: "var(--gold)" }}
+        title="Скачать Word с картой зала и списком гостей"
+      >
+        <Icon name="FileText" size={13} />
+        <span>Word</span>
+      </button>
+      <button
         onClick={onDownloadPng}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all hover:opacity-80"
         style={{ background: "#1e1a12", border: "1px solid #c9a96e50", color: "var(--gold)" }}
+        title="Скачать схему зала PNG"
       >
         <Icon name="Download" size={13} />
         <span>PNG</span>

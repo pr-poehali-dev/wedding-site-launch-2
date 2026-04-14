@@ -260,8 +260,25 @@ export default function EditorRightSidebar({
                     {isBlockOver ? "Отпустите для перемещения" : "Пусто"}
                   </div>
                 )}
-                {block.guests.map((guest) => {
+                {block.guests.map((guest, gIdx) => {
                   const isOver = dragOverGuestId === guest.id;
+                  const canUp = gIdx > 0 && block.tableId;
+                  const canDown = gIdx < block.guests.length - 1 && block.tableId;
+
+                  const moveGuest = (direction: -1 | 1) => {
+                    if (!onReorderGuests || !block.tableId) return;
+                    const arr = [...block.guests];
+                    const swapIdx = gIdx + direction;
+                    if (swapIdx < 0 || swapIdx >= arr.length) return;
+                    [arr[gIdx], arr[swapIdx]] = [arr[swapIdx], arr[gIdx]];
+                    const withIndex = arr.map((g, i) => ({ ...g, seatIndex: i }));
+                    const merged = guests.map((g) => {
+                      if (g.tableId !== block.tableId) return g;
+                      return withIndex.find((wg) => wg.id === g.id) ?? g;
+                    });
+                    onReorderGuests(merged);
+                  };
+
                   return (
                     <div
                       key={guest.id}
@@ -270,25 +287,39 @@ export default function EditorRightSidebar({
                       onDragEnd={handleDragEnd}
                       onDragOver={(e) => handleDragOverGuest(e, guest.id)}
                       onDrop={(e) => handleDropOnGuest(e, guest.id)}
-                      className="flex items-center gap-1.5 px-1.5 py-1 rounded cursor-grab active:cursor-grabbing"
+                      className="flex items-center gap-1 px-1.5 py-1 rounded cursor-grab active:cursor-grabbing"
                       style={{
                         background: isOver ? "#2a2318" : "#1a160f",
                         border: `1px solid ${isOver ? "#c9a96e60" : "#c9a96e15"}`,
                         transition: "all 0.1s",
                       }}
-                      title="Перетащите для смены порядка или переноса на другой стол"
                     >
-                      <Icon name="GripVertical" size={10} style={{ color: "#c9a96e40", flexShrink: 0 }} />
+                      {/* Номер места */}
+                      {block.table && (
+                        <span style={{ color: "#c9a96e80", fontSize: 9, minWidth: 12, textAlign: "right", flexShrink: 0 }}>
+                          {gIdx + 1}.
+                        </span>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs truncate" style={{ color: "var(--cream)", lineHeight: 1.3 }}>
                           {guest.name}
                         </p>
-                        {guest.seatIndex !== undefined && block.table && (
-                          <p className="text-xs" style={{ color: "#c9a96e60", fontSize: 9 }}>
-                            место {guest.seatIndex + 1}
-                          </p>
-                        )}
                       </div>
+                      {/* Стрелки ↑↓ */}
+                      {block.table && (
+                        <div className="flex flex-col" style={{ gap: 1, flexShrink: 0 }}>
+                          <button
+                            onClick={() => moveGuest(-1)}
+                            disabled={!canUp}
+                            style={{ background: "none", border: "none", cursor: canUp ? "pointer" : "default", color: canUp ? "#c9a96e" : "#c9a96e20", fontSize: 9, padding: "0 2px", lineHeight: 1 }}
+                          >▲</button>
+                          <button
+                            onClick={() => moveGuest(1)}
+                            disabled={!canDown}
+                            style={{ background: "none", border: "none", cursor: canDown ? "pointer" : "default", color: canDown ? "#c9a96e" : "#c9a96e20", fontSize: 9, padding: "0 2px", lineHeight: 1 }}
+                          >▼</button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
