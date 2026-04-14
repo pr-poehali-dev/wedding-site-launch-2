@@ -68,20 +68,13 @@ export default function SeatingEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hallShape, setHallShape] = useState<HallShape>("rect-h");
-  const [hallW, setHallW] = useState(500);
-  const [hallH, setHallH] = useState(300);
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync hall shape preset → dimensions (only when preset changes)
-  useEffect(() => {
-    const preset = HALL_PRESETS.find((p) => p.shape === hallShape);
-    if (preset) { setHallW(preset.w); setHallH(preset.h); }
-  }, [hallShape]);
-
-  const HALL_W = hallW;
-  const HALL_H = hallH;
+  // Фиксированный большой размер зала — скроллируется как карта
+  const HALL_W = 900;
+  const HALL_H = 600;
 
   const selectedTable = tables.find((t) => t.id === selectedId) ?? null;
 
@@ -132,7 +125,6 @@ export default function SeatingEditor({
   hallWRef.current = HALL_W;
   const hallHRef = useRef(HALL_H);
   hallHRef.current = HALL_H;
-  const svgRectRef = useRef<DOMRect | null>(null);
 
   const getSvgPointFromEvent = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
@@ -363,7 +355,7 @@ export default function SeatingEditor({
     guests,
     hallW: HALL_W,
     hallH: HALL_H,
-    onResizeHall: (w: number, h: number) => { setHallW(w); setHallH(h); },
+    onResizeHall: (_w: number, _h: number) => {},
     selectedId,
     dragging,
     dragOverTableId,
@@ -423,8 +415,8 @@ export default function SeatingEditor({
       {/* ── Mobile layout ── */}
       <div className="flex md:hidden flex-col">
 
-        {/* Зал — высота подстраивается под HALL_H */}
-        <div style={{ width: "100%", minHeight: 180, height: `calc(${HALL_H}px * (100vw / ${HALL_W}))`, maxHeight: "70vw", flexShrink: 0, background: "#110f0a", overflow: "hidden" }}>
+        {/* Зал — фиксированная высота, скроллируется пальцем как карта */}
+        <div style={{ width: "100%", height: 260, flexShrink: 0, background: "#110f0a", overflow: "hidden" }}>
           <HallCanvas
             {...hallCanvasProps}
             onTouchTableMove={handleTouchTableMove}
