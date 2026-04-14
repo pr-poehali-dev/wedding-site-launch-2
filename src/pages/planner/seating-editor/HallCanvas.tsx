@@ -172,16 +172,17 @@ export default function HallCanvas({
   return (
     <div
       ref={containerRef}
-      className="flex-1 flex items-start justify-center overflow-auto p-4"
+      className="flex-1 overflow-auto p-4"
+      style={{ display: "flex", alignItems: "flex-start", justifyContent: "stretch" }}
     >
-      {/* Wrapper with resize handles */}
-      <div style={{ position: "relative", display: "inline-block" }}>
+      {/* Wrapper with resize handles — fills available width */}
+      <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
         <svg
           ref={svgRef}
           viewBox={`0 0 ${hallW} ${hallH}`}
           style={{
             width: "100%",
-            maxWidth: hallW,
+            maxWidth: "none",
             cursor: dragging ? "grabbing" : "default",
             display: "block",
             borderRadius: 6,
