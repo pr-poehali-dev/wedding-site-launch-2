@@ -152,21 +152,18 @@ export default function HallCanvas({
     return () => svg.removeEventListener("touchmove", onTouchMoveNative);
   }, [svgRef]);
 
-  // ─── Resize handlers ───────────────────────────────────────────────────────
-  const handleResizeMouseDown = useCallback(
-    (e: React.MouseEvent, edge: ResizeEdge) => {
-      e.preventDefault();
-      e.stopPropagation();
+  // ─── Общий обработчик ресайза (mouse + touch) ─────────────────────────────
+  const startResize = useCallback(
+    (clientX: number, clientY: number, edge: ResizeEdge) => {
       resizingRef.current = edge;
-      resizeStartRef.current = { x: e.clientX, y: e.clientY, w: hallW, h: hallH };
+      resizeStartRef.current = { x: clientX, y: clientY, w: hallW, h: hallH };
       setResizeEdge(edge);
 
-      const onMove = (ev: MouseEvent) => {
+      const applyMove = (cx: number, cy: number) => {
         const start = resizeStartRef.current;
         if (!start || !resizingRef.current) return;
-        // dx/dy в экранных пикселях — добавляем напрямую к SVG-размеру (1px = 1 unit)
-        const dx = ev.clientX - start.x;
-        const dy = ev.clientY - start.y;
+        const dx = cx - start.x;
+        const dy = cy - start.y;
         const newW = resizingRef.current !== "bottom"
           ? Math.max(MIN_W, Math.min(MAX_W, start.w + dx))
           : start.w;
@@ -176,18 +173,44 @@ export default function HallCanvas({
         onResizeHall(Math.round(newW), Math.round(newH));
       };
 
-      const onUp = () => {
+      const onMouseMove = (ev: MouseEvent) => applyMove(ev.clientX, ev.clientY);
+      const onTouchMove = (ev: TouchEvent) => {
+        ev.preventDefault();
+        applyMove(ev.touches[0].clientX, ev.touches[0].clientY);
+      };
+      const cleanup = () => {
         resizingRef.current = null;
         resizeStartRef.current = null;
         setResizeEdge(null);
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", cleanup);
+        window.removeEventListener("touchmove", onTouchMove);
+        window.removeEventListener("touchend", cleanup);
       };
-
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", cleanup);
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+      window.addEventListener("touchend", cleanup);
     },
-    [hallW, hallH, onResizeHall, svgRef]
+    [hallW, hallH, onResizeHall]
+  );
+
+  const handleResizeMouseDown = useCallback(
+    (e: React.MouseEvent, edge: ResizeEdge) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startResize(e.clientX, e.clientY, edge);
+    },
+    [startResize]
+  );
+
+  const handleResizeTouchStart = useCallback(
+    (e: React.TouchEvent, edge: ResizeEdge) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startResize(e.touches[0].clientX, e.touches[0].clientY, edge);
+    },
+    [startResize]
   );
 
   // Grid lines
@@ -240,7 +263,7 @@ export default function HallCanvas({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full overflow-hidden p-1 md:p-4 md:overflow-auto"
+      className="w-full h-full overflow-auto p-1 md:p-4"
       style={{ display: "flex", alignItems: "flex-start", justifyContent: "stretch" }}
     >
       <div style={{ position: "relative", flex: 1, minWidth: 0, overflow: "visible" }}>
@@ -300,19 +323,28 @@ export default function HallCanvas({
         {/* Resize handles — внутри SVG-элемента */}
         <div>
           {/* Правый край */}
-          <div onMouseDown={(e) => handleResizeMouseDown(e, "right")} title="Растянуть по ширине"
-            style={{ position: "absolute", top: "15%", right: 2, width: 14, height: "70%", cursor: "ew-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: 4 }}>
-            <div style={{ width: 4, height: "70%", minHeight: 24, borderRadius: 4, background: resizeEdge === "right" || resizeEdge === "corner" ? "#c9a96e" : "#c9a96e60", boxShadow: "0 0 4px #c9a96e40" }} />
+          <div
+            onMouseDown={(e) => handleResizeMouseDown(e, "right")}
+            onTouchStart={(e) => handleResizeTouchStart(e, "right")}
+            title="Растянуть по ширине"
+            style={{ position: "absolute", top: "15%", right: 2, width: 18, height: "70%", cursor: "ew-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: 4, touchAction: "none" }}>
+            <div style={{ width: 5, height: "70%", minHeight: 28, borderRadius: 4, background: resizeEdge === "right" || resizeEdge === "corner" ? "#c9a96e" : "#c9a96e70", boxShadow: "0 0 6px #c9a96e50" }} />
           </div>
           {/* Нижний край */}
-          <div onMouseDown={(e) => handleResizeMouseDown(e, "bottom")} title="Растянуть по высоте"
-            style={{ position: "absolute", bottom: 2, left: "15%", height: 14, width: "70%", cursor: "ns-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: 4 }}>
-            <div style={{ height: 4, width: "70%", minWidth: 24, borderRadius: 4, background: resizeEdge === "bottom" || resizeEdge === "corner" ? "#c9a96e" : "#c9a96e60", boxShadow: "0 0 4px #c9a96e40" }} />
+          <div
+            onMouseDown={(e) => handleResizeMouseDown(e, "bottom")}
+            onTouchStart={(e) => handleResizeTouchStart(e, "bottom")}
+            title="Растянуть по высоте"
+            style={{ position: "absolute", bottom: 2, left: "15%", height: 18, width: "70%", cursor: "ns-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: 4, touchAction: "none" }}>
+            <div style={{ height: 5, width: "70%", minWidth: 28, borderRadius: 4, background: resizeEdge === "bottom" || resizeEdge === "corner" ? "#c9a96e" : "#c9a96e70", boxShadow: "0 0 6px #c9a96e50" }} />
           </div>
           {/* Угол */}
-          <div onMouseDown={(e) => handleResizeMouseDown(e, "corner")} title="Изменить размер"
-            style={{ position: "absolute", bottom: 2, right: 2, width: 18, height: 18, cursor: "nwse-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 11, borderRadius: 4, background: resizeEdge === "corner" ? "#c9a96e30" : "transparent" }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: resizeEdge === "corner" ? "#c9a96e" : "#c9a96e80", boxShadow: "0 0 4px #c9a96e40" }} />
+          <div
+            onMouseDown={(e) => handleResizeMouseDown(e, "corner")}
+            onTouchStart={(e) => handleResizeTouchStart(e, "corner")}
+            title="Изменить размер"
+            style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, cursor: "nwse-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 11, borderRadius: 4, background: resizeEdge === "corner" ? "#c9a96e30" : "transparent", touchAction: "none" }}>
+            <div style={{ width: 12, height: 12, borderRadius: 2, background: resizeEdge === "corner" ? "#c9a96e" : "#c9a96e80", boxShadow: "0 0 6px #c9a96e50" }} />
           </div>
           {/* Размер */}
           <div style={{ position: "absolute", bottom: 4, right: 22, fontSize: 8, color: "#c9a96e50", fontFamily: "Montserrat, sans-serif", pointerEvents: "none", userSelect: "none", whiteSpace: "nowrap" }}>

@@ -85,16 +85,15 @@ export default function SeatingEditor({
 
   const selectedTable = tables.find((t) => t.id === selectedId) ?? null;
 
+  // getSvgPoint — оставляем для совместимости (не используется в drag)
   const getSvgPoint = useCallback(
     (clientX: number, clientY: number) => {
       const svg = svgRef.current;
       if (!svg) return { x: 0, y: 0 };
       const rect = svg.getBoundingClientRect();
-      const scaleX = HALL_W / rect.width;
-      const scaleY = HALL_H / rect.height;
       return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY,
+        x: (clientX - rect.left) * (HALL_W / rect.width),
+        y: (clientY - rect.top) * (HALL_H / rect.height),
       };
     },
     [HALL_W, HALL_H]
@@ -129,25 +128,45 @@ export default function SeatingEditor({
   draggingRef.current = dragging;
   const tablesRef = useRef(tables);
   tablesRef.current = tables;
+  const hallWRef = useRef(HALL_W);
+  hallWRef.current = HALL_W;
+  const hallHRef = useRef(HALL_H);
+  hallHRef.current = HALL_H;
+  const svgRectRef = useRef<DOMRect | null>(null);
+
+  const getSvgPointFromEvent = useCallback((clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    // Используем актуальный rect каждый раз
+    const rect = svg.getBoundingClientRect();
+    const w = hallWRef.current;
+    const h = hallHRef.current;
+    return {
+      x: (clientX - rect.left) * (w / rect.width),
+      y: (clientY - rect.top) * (h / rect.height),
+    };
+  }, []);
 
   const handleTableMouseDown = useCallback(
     (e: React.MouseEvent, tableId: string) => {
       e.stopPropagation();
       e.preventDefault();
       setSelectedId(tableId);
-      const pt = getSvgPoint(e.clientX, e.clientY);
+      const pt = getSvgPointFromEvent(e.clientX, e.clientY);
       const table = tables.find((t) => t.id === tableId);
       if (!table) return;
-      const drag = { tableId, offsetX: pt.x - table.x, offsetY: pt.y - table.y };
-      setDragging(drag);
+      // Сохраняем offset в момент mousedown
+      const offsetX = pt.x - table.x;
+      const offsetY = pt.y - table.y;
+      setDragging({ tableId, offsetX, offsetY });
 
       const onMove = (ev: MouseEvent) => {
-        const d = draggingRef.current;
-        if (!d) return;
-        const pt2 = getSvgPoint(ev.clientX, ev.clientY);
-        const newX = Math.max(30, Math.min(HALL_W - 30, pt2.x - d.offsetX));
-        const newY = Math.max(30, Math.min(HALL_H - 30, pt2.y - d.offsetY));
-        onUpdateTables(tablesRef.current.map((t) => t.id === d.tableId ? { ...t, x: newX, y: newY } : t));
+        const pt2 = getSvgPointFromEvent(ev.clientX, ev.clientY);
+        const hw = hallWRef.current;
+        const hh = hallHRef.current;
+        const newX = Math.max(30, Math.min(hw - 30, pt2.x - offsetX));
+        const newY = Math.max(30, Math.min(hh - 30, pt2.y - offsetY));
+        onUpdateTables(tablesRef.current.map((t) => t.id === tableId ? { ...t, x: newX, y: newY } : t));
       };
       const onUp = () => {
         scheduleSave(tablesRef.current);
@@ -158,10 +177,10 @@ export default function SeatingEditor({
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
     },
-    [tables, getSvgPoint, onUpdateTables, scheduleSave, HALL_W, HALL_H]
+    [tables, getSvgPointFromEvent, onUpdateTables, scheduleSave]
   );
 
-  // Оставляем пустые заглушки — drag теперь через window
+  // Заглушки — drag через window listeners
   const handleSvgMouseMove = useCallback((_e: React.MouseEvent) => {}, []);
   const handleSvgMouseUp = useCallback(() => {}, []);
 
@@ -404,8 +423,8 @@ export default function SeatingEditor({
       {/* ── Mobile layout ── */}
       <div className="flex md:hidden flex-col">
 
-        {/* Зал */}
-        <div style={{ width: "100%", height: 220, flexShrink: 0, background: "#110f0a", overflow: "hidden" }}>
+        {/* Зал — высота подстраивается под HALL_H */}
+        <div style={{ width: "100%", minHeight: 180, height: `calc(${HALL_H}px * (100vw / ${HALL_W}))`, maxHeight: "70vw", flexShrink: 0, background: "#110f0a", overflow: "hidden" }}>
           <HallCanvas
             {...hallCanvasProps}
             onTouchTableMove={handleTouchTableMove}
