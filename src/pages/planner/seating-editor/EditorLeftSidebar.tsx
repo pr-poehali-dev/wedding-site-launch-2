@@ -131,6 +131,18 @@ export default function EditorLeftSidebar({
             </button>
           </div>
 
+          <label className="text-xs mt-2 mb-0.5" style={{ color: "#c9a96e80" }}>
+            Масштаб стола: {Math.round((selectedTable.scale ?? 1) * 100)}%
+          </label>
+          <input
+            type="range"
+            min={50} max={200} step={10}
+            value={Math.round((selectedTable.scale ?? 1) * 100)}
+            onChange={(e) => onUpdateSelected({ scale: Number(e.target.value) / 100 })}
+            className="w-full"
+            style={{ accentColor: "var(--gold)" }}
+          />
+
           <label className="text-xs mt-1 mb-1" style={{ color: "#c9a96e80" }}>
             Цвет
           </label>

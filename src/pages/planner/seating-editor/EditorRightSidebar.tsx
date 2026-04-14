@@ -151,14 +151,18 @@ export default function EditorRightSidebar({
     if (!srcId || !onReorderGuests) return;
     const src = guests.find((g) => g.id === srcId);
     if (!src) return;
-    if (src.tableId === targetTableId) return; // same table, no-op
+    if (src.tableId === targetTableId) return;
 
-    const seatsInTarget = guests.filter(
-      (g) => g.tableId === targetTableId && g.id !== srcId
-    );
-    const nextIndex = seatsInTarget.length;
+    // Проверяем лимит мест
+    if (targetTableId) {
+      const targetTable = tables.find((t) => t.id === targetTableId);
+      const currentCount = guests.filter((g) => g.tableId === targetTableId && g.id !== srcId).length;
+      if (targetTable && currentCount >= targetTable.seats) return; // лимит исчерпан
+    }
+
+    const seatsInTarget = guests.filter((g) => g.tableId === targetTableId && g.id !== srcId).length;
     const merged = guests.map((g) =>
-      g.id === srcId ? { ...g, tableId: targetTableId, seatIndex: nextIndex } : g
+      g.id === srcId ? { ...g, tableId: targetTableId, seatIndex: seatsInTarget } : g
     );
     onReorderGuests(merged);
   };
@@ -243,10 +247,15 @@ export default function EditorRightSidebar({
                 </span>
                 <span
                   className="ml-auto text-xs"
-                  style={{ color: "#c9a96e50", flexShrink: 0 }}
+                  style={{
+                    color: block.table && block.guests.length >= block.table.seats ? "#e07070" : "#c9a96e50",
+                    flexShrink: 0,
+                    fontWeight: block.table && block.guests.length >= block.table.seats ? 700 : 400,
+                  }}
                 >
                   {block.guests.length}
                   {block.table ? `/${block.table.seats}` : ""}
+                  {block.table && block.guests.length >= block.table.seats ? " ●" : ""}
                 </span>
               </div>
 

@@ -236,7 +236,7 @@ export default function HallCanvas({
               return (
                 <g
                   key={table.id}
-                  transform={`translate(${table.x}, ${table.y})`}
+                  transform={`translate(${table.x}, ${table.y}) scale(${table.scale ?? 1})`}
                   onMouseDown={(e) => onTableMouseDown(e, table.id)}
                   onDoubleClick={(e) => onTableDoubleClick(e, table.id)}
                   onMouseEnter={() => onTableDragEnter(table.id)}

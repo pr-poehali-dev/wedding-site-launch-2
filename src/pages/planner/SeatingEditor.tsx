@@ -20,6 +20,7 @@ export interface TableItem {
   x: number;
   y: number;
   color: string;
+  scale?: number; // 0.5 – 2.0, default 1
 }
 
 export interface GuestItem {
@@ -266,9 +267,11 @@ export default function SeatingEditor({
       const guestId = draggingGuest;
       setDragOverTableId(null);
       setDraggingGuest(null);
-      // Assign seatIndex = next available seat in that table
+      // Проверяем лимит мест
+      const targetTable = tables.find((t) => t.id === tableId);
       const seatsInTable = guests.filter((g) => g.tableId === tableId && g.id !== guestId);
       const nextIndex = seatsInTable.length;
+      if (targetTable && nextIndex >= targetTable.seats) return; // лимит мест исчерпан
       if (onReorderGuests) {
         const updated = guests.map((g) =>
           g.id === guestId ? { ...g, tableId, seatIndex: nextIndex } : g
@@ -336,8 +339,13 @@ export default function SeatingEditor({
     setSelectedId((prev) => prev === tableId ? null : tableId);
   }, []);
 
-  // Mobile: seat guest by tap
+  // Mobile: seat guest by tap — с проверкой лимита
   const handleSeatGuestMobile = useCallback((guestId: string, tableId: string | null) => {
+    if (tableId) {
+      const targetTable = tables.find((t) => t.id === tableId);
+      const currentCount = guests.filter((g) => g.tableId === tableId && g.id !== guestId).length;
+      if (targetTable && currentCount >= targetTable.seats) return; // лимит
+    }
     const seatsInTable = tableId
       ? guests.filter((g) => g.tableId === tableId && g.id !== guestId).length
       : 0;
@@ -347,7 +355,7 @@ export default function SeatingEditor({
       ));
     }
     onSeatGuest(guestId, tableId);
-  }, [guests, onReorderGuests, onSeatGuest]);
+  }, [guests, tables, onReorderGuests, onSeatGuest]);
 
   const hallCanvasProps = {
     svgRef,
@@ -425,8 +433,25 @@ export default function SeatingEditor({
           />
         </div>
 
-        {/* Добавить стол */}
+        {/* Форма зала + добавить стол */}
         <div style={{ background: "#0d0b08", borderTop: "1px solid #c9a96e30", padding: "10px 12px", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <p className="text-xs uppercase tracking-widest" style={{ color: "var(--gold)", flexShrink: 0 }}>Форма зала</p>
+            <div style={{ display: "flex", gap: 4 }}>
+              {HALL_PRESETS.map((preset) => (
+                <button key={preset.shape}
+                  onClick={() => setHallShape(preset.shape)}
+                  style={{
+                    padding: "4px 8px", borderRadius: 4, fontSize: 11,
+                    background: hallShape === preset.shape ? "#2a2010" : "#1a160f",
+                    border: `1px solid ${hallShape === preset.shape ? "#c9a96e" : "#c9a96e30"}`,
+                    color: hallShape === preset.shape ? "var(--gold)" : "#c9a96e60",
+                  }}>
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="text-xs uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Добавить стол</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {([
@@ -515,7 +540,15 @@ export default function SeatingEditor({
                 {/* Заголовок блока */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px 4px", background: "#0f0d0a" }}>
                   <span style={{ color: "var(--gold)", fontSize: 12, fontWeight: 600, flex: 1 }}>{block.label}</span>
-                  <span style={{ color: "#c9a96e50", fontSize: 11 }}>{block.guests.length}{block.seats != null ? `/${block.seats}` : ""}</span>
+                  {(() => {
+                    const isFull = block.seats != null && block.guests.length >= block.seats;
+                    return (
+                      <span style={{ color: isFull ? "#e07070" : "#c9a96e50", fontSize: 11, fontWeight: isFull ? 700 : 400 }}>
+                        {block.guests.length}{block.seats != null ? `/${block.seats}` : ""}
+                        {isFull ? " ●" : ""}
+                      </span>
+                    );
+                  })()}
                   {block.tableId && selectedId !== block.tableId && (
                     <button
                       onClick={() => setSelectedId(block.tableId)}
@@ -562,12 +595,19 @@ export default function SeatingEditor({
                         <span
                           style={{ flex: 1, color: "var(--cream)", fontSize: 13 }}
                         >{guest.name}</span>
-                        {selectedId && guest.tableId !== selectedId && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleSeatGuestMobile(guest.id, selectedId!); }}
-                            style={{ background: "#1a160f", border: "1px solid #c9a96e60", color: "var(--gold)", fontSize: 12, padding: "3px 8px", borderRadius: 4, flexShrink: 0, cursor: "pointer" }}
-                          >→ сюда</button>
-                        )}
+                        {selectedId && guest.tableId !== selectedId && (() => {
+                          const selTable = tables.find((t) => t.id === selectedId);
+                          const selCount = guests.filter((g) => g.tableId === selectedId).length;
+                          const isFull = selTable && selCount >= selTable.seats;
+                          return (
+                            <button
+                              disabled={!!isFull}
+                              onClick={(e) => { e.stopPropagation(); if (!isFull) handleSeatGuestMobile(guest.id, selectedId!); }}
+                              style={{ background: isFull ? "#1a160f" : "#1a160f", border: `1px solid ${isFull ? "#c9a96e20" : "#c9a96e60"}`, color: isFull ? "#c9a96e30" : "var(--gold)", fontSize: 12, padding: "3px 8px", borderRadius: 4, flexShrink: 0, cursor: isFull ? "not-allowed" : "pointer" }}
+                              title={isFull ? "Стол заполнен" : "Посадить за этот стол"}
+                            >{isFull ? "●" : "→ сюда"}</button>
+                          );
+                        })()}
                         {/* Стрелки ↑↓ */}
                         {block.tableId && (
                           <div style={{ display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
