@@ -23,8 +23,13 @@ interface GuestGroup {
 function buildGroups(guests: GuestItem[], tables: TableItem[]): GuestGroup[] {
   const groups: GuestGroup[] = [];
 
-  // Assigned tables — sorted by table label
-  const sortedTables = [...tables].sort((a, b) => a.label.localeCompare(b.label, "ru"));
+  // Assigned tables — presidium first (table #0), then rest sorted by label
+  const sortedTables = [...tables].sort((a, b) => {
+    const aP = a.shape === "presidium" ? -1 : 0;
+    const bP = b.shape === "presidium" ? -1 : 0;
+    if (aP !== bP) return aP - bP;
+    return a.label.localeCompare(b.label, "ru");
+  });
   for (const table of sortedTables) {
     const seated = guests.filter((g) => g.tableId === table.id);
     if (seated.length > 0) {
@@ -78,6 +83,11 @@ export async function exportGuestsDocx(
   );
 
   for (const group of groups) {
+    const tableNum = group.table
+      ? group.table.shape === "presidium"
+        ? "№0  "
+        : ""
+      : "";
     const tableLabel = group.table ? group.table.label : "Без стола";
     const seats = group.table ? `(${group.table.seats} мест)` : "";
 
@@ -86,7 +96,7 @@ export async function exportGuestsDocx(
       new Paragraph({
         children: [
           new TextRun({
-            text: `${tableLabel}  `,
+            text: `${tableNum}${tableLabel}  `,
             bold: true,
             size: 28,
             color: "2C2008",
@@ -227,7 +237,7 @@ export function exportGuestsTxt(
 
   for (const group of groups) {
     const tableLabel = group.table
-      ? `${group.table.label} (${group.table.seats} мест)`
+      ? `${group.table.shape === "presidium" ? "№0 " : ""}${group.table.label} (${group.table.seats} мест)`
       : "Без стола";
     lines.push(tableLabel);
     lines.push("-".repeat(40));

@@ -168,6 +168,7 @@ export default function PlannerPage() {
               guests={guests}
               onUpdateTables={setTables}
               onSeatGuest={(guestId, tableId) => setGuests(gs => gs.map(g => g.id === guestId ? { ...g, tableId } : g))}
+              onReorderGuests={setGuests}
               onOpenGuests={() => setView("guests")}
               sessionId={sessionId}
               planId={String(activePlan.id)}

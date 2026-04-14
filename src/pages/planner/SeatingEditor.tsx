@@ -24,6 +24,7 @@ export interface GuestItem {
   id: string;
   name: string;
   tableId?: string | null;
+  seatIndex?: number;
   rsvp?: "pending" | "confirmed" | "declined";
   phone?: string;
   note?: string;
@@ -35,6 +36,7 @@ interface SeatingEditorProps {
   guests: GuestItem[];
   onUpdateTables: (tables: TableItem[]) => void;
   onSeatGuest: (guestId: string, tableId: string | null) => void;
+  onReorderGuests?: (guests: GuestItem[]) => void;
   onOpenGuests?: () => void;
   sessionId: string | null;
   planId: string;
@@ -46,6 +48,7 @@ export default function SeatingEditor({
   guests,
   onUpdateTables,
   onSeatGuest,
+  onReorderGuests,
   onOpenGuests,
   sessionId,
   planId,
@@ -232,9 +235,19 @@ export default function SeatingEditor({
   const handleTableDrop = useCallback(
     async (tableId: string) => {
       if (!draggingGuest) return;
+      const guestId = draggingGuest;
       setDragOverTableId(null);
       setDraggingGuest(null);
-      onSeatGuest(draggingGuest, tableId);
+      // Assign seatIndex = next available seat in that table
+      const seatsInTable = guests.filter((g) => g.tableId === tableId && g.id !== guestId);
+      const nextIndex = seatsInTable.length;
+      if (onReorderGuests) {
+        const updated = guests.map((g) =>
+          g.id === guestId ? { ...g, tableId, seatIndex: nextIndex } : g
+        );
+        onReorderGuests(updated);
+      }
+      onSeatGuest(guestId, tableId);
       try {
         const headers: Record<string, string> = { "Content-Type": "application/json" };
         if (sessionId) headers["X-Session-Id"] = sessionId;
@@ -244,7 +257,7 @@ export default function SeatingEditor({
           body: JSON.stringify({
             action: "update",
             planId,
-            guestId: draggingGuest,
+            guestId,
             tableId,
           }),
         });
@@ -252,30 +265,47 @@ export default function SeatingEditor({
         // silent
       }
     },
-    [draggingGuest, onSeatGuest, sessionId, planId]
+    [draggingGuest, guests, onSeatGuest, onReorderGuests, sessionId, planId]
   );
 
   const downloadPng = useCallback(async () => {
     const svg = svgRef.current;
     if (!svg) return;
+
+    const scale = 2;
+    const w = HALL_W * scale;
+    const h = HALL_H * scale;
+
+    // Serialize SVG and add explicit width/height so canvas renders fully
     const serializer = new XMLSerializer();
-    const svgStr = serializer.serializeToString(svg);
-    const blob = new Blob([svgStr], { type: "image/svg+xml" });
+    let svgStr = serializer.serializeToString(svg);
+    // Ensure width/height attributes are set (viewBox alone is not enough for canvas)
+    svgStr = svgStr.replace(
+      /(<svg[^>]*?)(\s*>)/,
+      `$1 width="${w}" height="${h}"$2`
+    );
+
+    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = HALL_W * 2;
-      canvas.height = HALL_H * 2;
+      canvas.width = w;
+      canvas.height = h;
       const ctx = canvas.getContext("2d")!;
-      ctx.scale(2, 2);
-      ctx.drawImage(img, 0, 0);
+      ctx.fillStyle = "#110f0a";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
       a.download = `${plan.title || "seating"}.png`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
     };
+    img.onerror = () => URL.revokeObjectURL(url);
     img.src = url;
   }, [plan.title, HALL_W, HALL_H]);
 
@@ -343,6 +373,7 @@ export default function SeatingEditor({
           onGuestSearchChange={setGuestSearch}
           onGuestDragStart={handleGuestDragStart}
           onGuestDragEnd={() => setDraggingGuest(null)}
+          onReorderGuests={onReorderGuests}
         />
       </div>
     </div>

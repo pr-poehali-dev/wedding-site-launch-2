@@ -143,7 +143,9 @@ export default function HallCanvas({
 
         {/* Tables */}
         {tables.map((table) => {
-          const tableGuests = guests.filter((g) => g.tableId === table.id);
+          const tableGuests = guests
+            .filter((g) => g.tableId === table.id)
+            .sort((a, b) => (a.seatIndex ?? 9999) - (b.seatIndex ?? 9999));
           return (
             <g
               key={table.id}
