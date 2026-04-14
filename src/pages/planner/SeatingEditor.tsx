@@ -69,14 +69,21 @@ export default function SeatingEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hallShape, setHallShape] = useState<HallShape>("rect-h");
+  const [hallCustomW, setHallCustomW] = useState<number | null>(null);
+  const [hallCustomH, setHallCustomH] = useState<number | null>(null);
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Размер зала по пресету — зал скроллируется и зумируется
+  // Размер зала — кастомный (если меняли ручкой) или по пресету
   const hallPreset = HALL_PRESETS.find((p) => p.shape === hallShape) ?? HALL_PRESETS[1];
-  const HALL_W = hallPreset.w;
-  const HALL_H = hallPreset.h;
+  const HALL_W = hallCustomW ?? hallPreset.w;
+  const HALL_H = hallCustomH ?? hallPreset.h;
+
+  const handleResizeHall = useCallback((w: number, h: number) => {
+    setHallCustomW(w);
+    setHallCustomH(h);
+  }, []);
 
   const selectedTable = tables.find((t) => t.id === selectedId) ?? null;
 
@@ -363,7 +370,7 @@ export default function SeatingEditor({
     guests,
     hallW: HALL_W,
     hallH: HALL_H,
-    onResizeHall: (_w: number, _h: number) => {},
+    onResizeHall: handleResizeHall,
     selectedId,
     dragging,
     dragOverTableId,
@@ -406,7 +413,7 @@ export default function SeatingEditor({
           onAddTable={addTable}
           onUpdateSelected={updateSelected}
           onDeleteSelected={deleteSelected}
-          onHallShapeChange={setHallShape}
+          onHallShapeChange={(shape) => { setHallShape(shape); setHallCustomW(null); setHallCustomH(null); }}
         />
         <HallCanvas {...hallCanvasProps} />
         <EditorRightSidebar
@@ -440,7 +447,7 @@ export default function SeatingEditor({
             <div style={{ display: "flex", gap: 4 }}>
               {HALL_PRESETS.map((preset) => (
                 <button key={preset.shape}
-                  onClick={() => setHallShape(preset.shape)}
+                  onClick={() => { setHallShape(preset.shape); setHallCustomW(null); setHallCustomH(null); }}
                   style={{
                     padding: "4px 8px", borderRadius: 4, fontSize: 11,
                     background: hallShape === preset.shape ? "#2a2010" : "#1a160f",

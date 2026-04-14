@@ -33,6 +33,7 @@ interface HallCanvasProps {
 
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 3;
+const GRID = 20; // шаг сетки при ресайзе
 
 export default function HallCanvas({
   svgRef,
@@ -57,6 +58,7 @@ export default function HallCanvas({
   onInlineEditChange,
   onInlineEditCommit,
   onInlineEditCancel,
+  onResizeHall,
   onTouchTableMove,
   onTouchTableEnd,
   onTableTap,
@@ -65,6 +67,41 @@ export default function HallCanvas({
   const [zoom, setZoom] = useState(1);
   const zoomRef = useRef(1);
   zoomRef.current = zoom;
+
+  // ─── Resize hall by dragging edge handles ────────────────────────────────
+  const resizeRef = useRef<{ type: "right" | "bottom" | "corner"; startX: number; startY: number; startW: number; startH: number } | null>(null);
+
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent, type: "right" | "bottom" | "corner") => {
+    e.preventDefault();
+    e.stopPropagation();
+    resizeRef.current = { type, startX: e.clientX, startY: e.clientY, startW: hallW, startH: hallH };
+    const onMove = (ev: MouseEvent) => {
+      if (!resizeRef.current) return;
+      const z = zoomRef.current;
+      const dx = (ev.clientX - resizeRef.current.startX) / z;
+      const dy = (ev.clientY - resizeRef.current.startY) / z;
+      let nW = resizeRef.current.startW;
+      let nH = resizeRef.current.startH;
+      if (type === "right" || type === "corner") nW = Math.max(GRID * 5, Math.round((resizeRef.current.startW + dx) / GRID) * GRID);
+      if (type === "bottom" || type === "corner") nH = Math.max(GRID * 5, Math.round((resizeRef.current.startH + dy) / GRID) * GRID);
+      onResizeHall(nW, nH);
+    };
+    const onUp = () => {
+      resizeRef.current = null;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, [hallW, hallH, onResizeHall]);
+
+  const touchResizeRef = useRef<{ type: "right" | "bottom" | "corner"; startX: number; startY: number; startW: number; startH: number } | null>(null);
+
+  const handleResizeTouchStart = useCallback((e: React.TouchEvent, type: "right" | "bottom" | "corner") => {
+    e.stopPropagation();
+    const t = e.touches[0];
+    touchResizeRef.current = { type, startX: t.clientX, startY: t.clientY, startW: hallW, startH: hallH };
+  }, [hallW, hallH]);
 
   const touchDragRef = useRef<{
     tableId: string;
@@ -107,7 +144,10 @@ export default function HallCanvas({
     const ptY = (touch.clientY - rect.top) / z;
     touchStartTimeRef.current = Date.now();
     for (const table of [...tables].reverse()) {
-      if (Math.abs(ptX - table.x) < 60 && Math.abs(ptY - table.y) < 60) {
+      // Президиум широкий — берём реальную зону
+      const hitW = table.shape === "presidium" ? Math.max(80, table.seats * 15) / 2 + 10 : 60;
+      const hitH = table.shape === "presidium" ? 30 : 60;
+      if (Math.abs(ptX - table.x) < hitW && Math.abs(ptY - table.y) < hitH) {
         touchDragRef.current = {
           tableId: table.id,
           startX: touch.clientX, startY: touch.clientY,
@@ -128,6 +168,21 @@ export default function HallCanvas({
       setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchRef.current.zoom * (dist / pinchRef.current.dist))));
       return;
     }
+    // Тач-ресайз зала
+    if (touchResizeRef.current && e.touches.length === 1) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const z = zoomRef.current;
+      const { type, startX, startY, startW, startH } = touchResizeRef.current;
+      const dx = (touch.clientX - startX) / z;
+      const dy = (touch.clientY - startY) / z;
+      let nW = startW;
+      let nH = startH;
+      if (type === "right" || type === "corner") nW = Math.max(GRID * 5, Math.round((startW + dx) / GRID) * GRID);
+      if (type === "bottom" || type === "corner") nH = Math.max(GRID * 5, Math.round((startH + dy) / GRID) * GRID);
+      onResizeHall(nW, nH);
+      return;
+    }
     if (!touchDragRef.current || !onTouchTableMove || e.touches.length !== 1) return;
     e.preventDefault();
     const touch = e.touches[0];
@@ -139,12 +194,17 @@ export default function HallCanvas({
     onTouchTableMove(touchDragRef.current.tableId, newX, newY);
   }, [onTouchTableMove, hallW, hallH]);
 
-  const handleSvgTouchEnd = useCallback(() => {
+  const handleSvgTouchEnd = useCallback((e: React.TouchEvent) => {
     pinchRef.current = null;
+    touchResizeRef.current = null;
     if (!touchDragRef.current) return;
     const elapsed = Date.now() - touchStartTimeRef.current;
     const tableId = touchDragRef.current.tableId;
-    if (elapsed < 250 && onTableTap) onTableTap(tableId);
+    // Считаем тапом, если прошло < 300мс и почти не двигали
+    const touch = e.changedTouches[0];
+    const movedX = touch ? Math.abs(touch.clientX - touchDragRef.current.startX) : 0;
+    const movedY = touch ? Math.abs(touch.clientY - touchDragRef.current.startY) : 0;
+    if (elapsed < 300 && movedX < 10 && movedY < 10 && onTableTap) onTableTap(tableId);
     touchDragRef.current = null;
     if (onTouchTableEnd) onTouchTableEnd();
   }, [onTableTap, onTouchTableEnd]);
@@ -153,7 +213,7 @@ export default function HallCanvas({
     const svg = svgRef.current;
     if (!svg) return;
     const onMove = (e: TouchEvent) => {
-      if (touchDragRef.current || pinchRef.current) e.preventDefault();
+      if (touchDragRef.current || pinchRef.current || touchResizeRef.current) e.preventDefault();
     };
     svg.addEventListener("touchmove", onMove, { passive: false });
     return () => svg.removeEventListener("touchmove", onMove);
@@ -255,6 +315,35 @@ export default function HallCanvas({
               );
             })}
             {inlineEditor}
+
+            {/* ─── Ручки ресайза зала ─────────────────────────────────── */}
+            {/* Правый край */}
+            <g style={{ cursor: "ew-resize" }}
+              onMouseDown={(e) => handleResizeMouseDown(e, "right")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "right")}>
+              <rect x={hallW - 3} y={0} width={6} height={hallH} fill="transparent" />
+              <rect x={hallW - 2} y={hallH / 2 - 20} width={4} height={40} rx={2} fill="#c9a96e" opacity={0.35} />
+              <text x={hallW - 10} y={12} textAnchor="end" fontSize={8} fontFamily="Montserrat,sans-serif" fill="#c9a96e60" style={{ pointerEvents: "none", userSelect: "none" }}>
+                {Math.round(hallW / GRID)}к
+              </text>
+            </g>
+            {/* Нижний край */}
+            <g style={{ cursor: "ns-resize" }}
+              onMouseDown={(e) => handleResizeMouseDown(e, "bottom")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "bottom")}>
+              <rect x={0} y={hallH - 3} width={hallW} height={6} fill="transparent" />
+              <rect x={hallW / 2 - 20} y={hallH - 2} width={40} height={4} rx={2} fill="#c9a96e" opacity={0.35} />
+              <text x={12} y={hallH - 6} textAnchor="start" fontSize={8} fontFamily="Montserrat,sans-serif" fill="#c9a96e60" style={{ pointerEvents: "none", userSelect: "none" }}>
+                {Math.round(hallH / GRID)}к
+              </text>
+            </g>
+            {/* Угол (правый нижний) */}
+            <g style={{ cursor: "nwse-resize" }}
+              onMouseDown={(e) => handleResizeMouseDown(e, "corner")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "corner")}>
+              <rect x={hallW - 14} y={hallH - 14} width={14} height={14} fill="transparent" />
+              <circle cx={hallW - 5} cy={hallH - 5} r={6} fill="#c9a96e" opacity={0.55} />
+            </g>
           </svg>
         </div>
       </div>
