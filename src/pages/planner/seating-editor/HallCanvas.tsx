@@ -295,7 +295,7 @@ export default function HallCanvas({
                 {table.shape === "round" && <RoundTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
                 {table.shape === "rect" && <RectTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
                 {table.shape === "oval" && <OvalTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
-                {table.shape === "row" && <RectTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} isRow guests={tableGuests} />}
+
                 {table.shape === "presidium" && <PresidiumTable table={table} selected={selectedId === table.id} dragOver={dragOverTableId === table.id} guests={tableGuests} />}
               </g>
             );

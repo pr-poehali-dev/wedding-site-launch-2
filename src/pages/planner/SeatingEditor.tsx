@@ -8,7 +8,7 @@ import HallCanvas from "./seating-editor/HallCanvas";
 const PLANS_API = "https://functions.poehali.dev/8192888d-d171-4174-9179-bae0a5946737";
 const GUESTS_API = "https://functions.poehali.dev/5a8e58c4-106e-46da-8f0c-84e078f2432c";
 
-export type TableShape = "round" | "rect" | "oval" | "row" | "presidium";
+export type TableShape = "round" | "rect" | "oval" | "presidium";
 
 export interface TableItem {
   id: string;
@@ -171,7 +171,7 @@ export default function SeatingEditor({
         label: shape === "presidium"
           ? "Президиум"
           : `Стол ${tables.filter((t) => t.shape !== "presidium").length + 1}`,
-        seats: shape === "row" ? 10 : shape === "presidium" ? 8 : 6,
+        seats: shape === "presidium" ? 8 : 6,
         x: 150 + Math.random() * (HALL_W - 300),
         y: 100 + Math.random() * (HALL_H - 200),
         color: TABLE_COLORS[0].value,
@@ -435,7 +435,7 @@ export default function SeatingEditor({
               { shape: "round" as TableShape, label: "Круглый" },
               { shape: "rect" as TableShape, label: "Прямоуг." },
               { shape: "oval" as TableShape, label: "Овальный" },
-              { shape: "row" as TableShape, label: "Ряд" },
+
               { shape: "presidium" as TableShape, label: "Президиум" },
             ]).map(({ shape, label }) => (
               <button key={shape} onClick={() => addTable(shape)}
