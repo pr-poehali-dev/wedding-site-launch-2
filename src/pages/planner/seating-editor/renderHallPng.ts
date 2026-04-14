@@ -13,6 +13,14 @@ export function renderHallPng(
     const serializer = new XMLSerializer();
     let svgStr = serializer.serializeToString(svgEl);
 
+    // Убираем внешние ресурсы (Google Fonts и т.п.) — они блокируют canvas из-за CORS
+    svgStr = svgStr.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+    svgStr = svgStr.replace(/<defs[^>]*>[\s\S]*?<\/defs>/gi, "");
+    // Заменяем внешние шрифты на безопасный системный
+    svgStr = svgStr.replace(/Montserrat,?\s*sans-serif/g, "Arial, sans-serif");
+    svgStr = svgStr.replace(/Montserrat/g, "Arial");
+    svgStr = svgStr.replace(/Cormorant[^"']*/g, "Georgia");
+
     if (light) {
       // Заменяем тёмный фон зала на белый
       svgStr = svgStr.replace(/fill="#110f0a"/g, 'fill="#ffffff"');
@@ -38,18 +46,25 @@ export function renderHallPng(
     const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const img = new Image();
+    const timer = setTimeout(() => { URL.revokeObjectURL(url); reject(new Error("SVG render timeout")); }, 10000);
     img.onload = () => {
+      clearTimeout(timer);
       const canvas = document.createElement("canvas");
       canvas.width = w;
       canvas.height = h;
       const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = light ? "#ffffff" : "#110f0a";
       ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/png"));
+      try {
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/png"));
+      } catch {
+        URL.revokeObjectURL(url);
+        reject(new Error("Canvas tainted — cross-origin content"));
+      }
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("SVG render failed")); };
+    img.onerror = () => { clearTimeout(timer); URL.revokeObjectURL(url); reject(new Error("SVG render failed")); };
     img.src = url;
   });
 }

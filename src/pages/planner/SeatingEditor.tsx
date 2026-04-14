@@ -309,20 +309,28 @@ export default function SeatingEditor({
   const downloadPng = useCallback(async () => {
     const svg = svgRef.current;
     if (!svg) return;
-    const dataUrl = await renderHallPng(svg, HALL_W, HALL_H, false);
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `${plan.title || "seating"}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      const dataUrl = await renderHallPng(svg, HALL_W, HALL_H, false);
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `${plan.title || "seating"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) {
+      alert("Не удалось создать PNG: " + (e instanceof Error ? e.message : String(e)));
+    }
   }, [plan.title, HALL_W, HALL_H]);
 
   const downloadDocx = useCallback(async () => {
     const svg = svgRef.current;
     if (!svg) return;
-    const pngBase64 = await renderHallPng(svg, HALL_W, HALL_H, true);
-    await exportGuestsDocxWithMap(guests, tables, plan.title, pngBase64, HALL_W, HALL_H);
+    try {
+      const pngBase64 = await renderHallPng(svg, HALL_W, HALL_H, true);
+      await exportGuestsDocxWithMap(guests, tables, plan.title, pngBase64, HALL_W, HALL_H);
+    } catch (e) {
+      alert("Не удалось создать DOCX: " + (e instanceof Error ? e.message : String(e)));
+    }
   }, [guests, tables, plan.title, HALL_W, HALL_H]);
 
   useEffect(() => {

@@ -16,6 +16,8 @@ interface Plan {
   hall_height?: number;
   guest_token?: string;
   updated_at?: string;
+  tables_count?: number;
+  guests_count?: number;
 }
 
 type AuthTab = "login" | "register";
@@ -39,8 +41,7 @@ export default function PlannerPage() {
 
   const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Загружаем список планов пользователя
-  useEffect(() => {
+  const refreshPlans = () => {
     if (!user || !sessionId) return;
     fetch(PLANS_API, {
       method: "POST",
@@ -50,6 +51,11 @@ export default function PlannerPage() {
       .then(r => r.json())
       .then(d => { if (d.plans) setPlans(d.plans); })
       .catch(() => {});
+  };
+
+  // Загружаем список планов пользователя
+  useEffect(() => {
+    refreshPlans();
   }, [user, sessionId]);
 
   const callApi = (body: object) =>
@@ -149,12 +155,15 @@ export default function PlannerPage() {
       {view === "editor" && activePlan && (
         <div className="flex flex-col" style={{ minHeight: "calc(100vh - 65px)" }}>
           <div className="flex items-center gap-4 px-6 py-3 flex-shrink-0" style={{ borderBottom: "1px solid rgba(201,169,110,0.1)", background: "rgba(201,169,110,0.03)" }}>
-            <button onClick={() => setView("landing")} className="flex items-center gap-1 font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.4)" }}>
-              <Icon name="ChevronLeft" size={14} /> Назад
+            <button onClick={() => { refreshPlans(); setView("landing"); }} className="flex items-center gap-1 font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.4)" }}>
+              <Icon name="ChevronLeft" size={14} /> Мои планы
             </button>
             <input value={planTitle} onChange={e => handleTitleChange(e.target.value)}
-              className="bg-transparent outline-none font-cormorant text-lg flex-1 min-w-0"
+              className="bg-transparent outline-none font-cormorant text-lg flex-1 min-w-0 hidden sm:block"
               style={{ color: "var(--cream)", borderBottom: "1px solid rgba(201,169,110,0.2)" }} />
+            <span className="font-montserrat text-xs hidden sm:block" style={{ color: "rgba(201,169,110,0.4)", flexShrink: 0 }}>
+              автосохранение ✓
+            </span>
             <button onClick={() => setView("guests")} className="flex items-center gap-2 font-montserrat text-xs tracking-widest uppercase px-4 py-2 transition-all"
               style={{ border: "1px solid rgba(201,169,110,0.3)", color: "rgba(245,237,216,0.6)" }}>
               <Icon name="Users" size={13} />
@@ -247,8 +256,28 @@ export default function PlannerPage() {
                         </button>
                       </div>
                       <div className="font-cormorant text-lg mb-1" style={{ color: "var(--cream)" }}>{plan.title}</div>
-                      {plan.event_date && <div className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.35)" }}>{plan.event_date}</div>}
-                      <div className="mt-3 font-montserrat text-xs tracking-widest uppercase" style={{ color: "rgba(201,169,110,0.5)" }}>
+                      {plan.event_date && <div className="font-montserrat text-xs mb-1" style={{ color: "rgba(245,237,216,0.35)" }}>{plan.event_date}</div>}
+                      <div className="flex gap-3 mt-2 mb-3">
+                        {(plan.tables_count ?? 0) > 0 && (
+                          <span className="font-montserrat text-xs" style={{ color: "rgba(201,169,110,0.5)" }}>
+                            {plan.tables_count} {plan.tables_count === 1 ? "стол" : "столов"}
+                          </span>
+                        )}
+                        {(plan.guests_count ?? 0) > 0 && (
+                          <span className="font-montserrat text-xs" style={{ color: "rgba(201,169,110,0.5)" }}>
+                            {plan.guests_count} {(plan.guests_count ?? 0) === 1 ? "гость" : "гостей"}
+                          </span>
+                        )}
+                        {(plan.tables_count ?? 0) === 0 && (plan.guests_count ?? 0) === 0 && (
+                          <span className="font-montserrat text-xs" style={{ color: "rgba(245,237,216,0.2)" }}>пусто</span>
+                        )}
+                      </div>
+                      {plan.updated_at && (
+                        <div className="font-montserrat text-xs mb-2" style={{ color: "rgba(245,237,216,0.2)", fontSize: 10 }}>
+                          {new Date(plan.updated_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" })}
+                        </div>
+                      )}
+                      <div className="font-montserrat text-xs tracking-widest uppercase" style={{ color: "rgba(201,169,110,0.5)" }}>
                         Открыть →
                       </div>
                     </div>

@@ -54,11 +54,18 @@ def handler(event: dict, context) -> dict:
             conn.close()
             return {"statusCode": 401, "headers": CORS, "body": json.dumps({"error": "Не авторизован"})}
         cur.execute(
-            "SELECT id, title, event_date, hall_width, hall_height, guest_token, created_at, updated_at FROM seating_plans WHERE user_id = %s ORDER BY updated_at DESC",
+            """SELECT p.id, p.title, p.event_date, p.hall_width, p.hall_height, p.guest_token, p.created_at, p.updated_at,
+               COUNT(DISTINCT t.id) AS tables_count,
+               COUNT(DISTINCT g.id) AS guests_count
+               FROM seating_plans p
+               LEFT JOIN seating_tables t ON t.plan_id = p.id
+               LEFT JOIN seating_guests g ON g.plan_id = p.id
+               WHERE p.user_id = %s AND p.title != 'DELETED'
+               GROUP BY p.id ORDER BY p.updated_at DESC""",
             (user[0],)
         )
         rows = cur.fetchall()
-        plans = [{"id": r[0], "title": r[1], "event_date": str(r[2]) if r[2] else None, "hall_width": r[3], "hall_height": r[4], "guest_token": r[5], "created_at": str(r[6]), "updated_at": str(r[7])} for r in rows]
+        plans = [{"id": r[0], "title": r[1], "event_date": str(r[2]) if r[2] else None, "hall_width": r[3], "hall_height": r[4], "guest_token": r[5], "created_at": str(r[6]), "updated_at": str(r[7]), "tables_count": r[8], "guests_count": r[9]} for r in rows]
         conn.close()
         return {"statusCode": 200, "headers": CORS, "body": json.dumps({"plans": plans})}
 
@@ -93,8 +100,8 @@ def handler(event: dict, context) -> dict:
             conn.close()
             return {"statusCode": 403, "headers": CORS, "body": json.dumps({"error": "Нет доступа"})}
         plan = {"id": row[0], "title": row[1], "event_date": str(row[2]) if row[2] else None, "hall_width": row[3], "hall_height": row[4], "guest_token": row[5]}
-        cur.execute("SELECT id, label, shape, x, y, width, height, seats, color, rotation FROM seating_tables WHERE plan_id = %s", (plan_id,))
-        plan["tables"] = [{"id": r[0], "label": r[1], "shape": r[2], "x": r[3], "y": r[4], "width": r[5], "height": r[6], "seats": r[7], "color": r[8], "rotation": r[9]} for r in cur.fetchall()]
+        cur.execute("SELECT id, label, shape, x, y, width, height, seats, color, rotation, scale FROM seating_tables WHERE plan_id = %s", (plan_id,))
+        plan["tables"] = [{"id": r[0], "label": r[1], "shape": r[2], "x": r[3], "y": r[4], "width": r[5], "height": r[6], "seats": r[7], "color": r[8], "rotation": r[9], "scale": float(r[10]) if r[10] is not None else 1.0} for r in cur.fetchall()]
         cur.execute("SELECT id, name, table_id, seat_number, phone, note, rsvp_status FROM seating_guests WHERE plan_id = %s ORDER BY name", (plan_id,))
         plan["guests"] = [{"id": r[0], "name": r[1], "table_id": r[2], "seat_number": r[3], "phone": r[4], "note": r[5], "rsvp_status": r[6]} for r in cur.fetchall()]
         conn.close()
@@ -129,14 +136,14 @@ def handler(event: dict, context) -> dict:
             for t in body["tables"]:
                 if t.get("id") and t["id"] in existing_ids:
                     cur.execute(
-                        "UPDATE seating_tables SET label=%s, shape=%s, x=%s, y=%s, width=%s, height=%s, seats=%s, color=%s, rotation=%s WHERE id=%s",
-                        (t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0), t["id"])
+                        "UPDATE seating_tables SET label=%s, shape=%s, x=%s, y=%s, width=%s, height=%s, seats=%s, color=%s, rotation=%s, scale=%s WHERE id=%s",
+                        (t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0), t.get("scale",1.0), t["id"])
                     )
                     incoming_ids.add(t["id"])
                 else:
                     cur.execute(
-                        "INSERT INTO seating_tables (plan_id, label, shape, x, y, width, height, seats, color, rotation) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
-                        (plan_id, t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0))
+                        "INSERT INTO seating_tables (plan_id, label, shape, x, y, width, height, seats, color, rotation, scale) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                        (plan_id, t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0), t.get("scale",1.0))
                     )
                     incoming_ids.add(cur.fetchone()[0])
             for old_id in existing_ids - incoming_ids:
