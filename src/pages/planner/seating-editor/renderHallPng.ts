@@ -10,11 +10,13 @@ export function renderHallPng(
     const w = hallW * scale;
     const h = hallH * scale;
 
-    const serializer = new XMLSerializer();
-    let svgStr = serializer.serializeToString(svgEl);
+    // Клонируем SVG и удаляем foreignObject до сериализации (canvas не поддерживает HTML в SVG)
+    const clone = svgEl.cloneNode(true) as SVGSVGElement;
+    clone.querySelectorAll("foreignObject").forEach(el => el.remove());
 
-    // Убираем foreignObject (HTML внутри SVG) — canvas не может его рендерить
-    svgStr = svgStr.replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "");
+    const serializer = new XMLSerializer();
+    let svgStr = serializer.serializeToString(clone);
+
     // Убираем внешние ресурсы (Google Fonts и т.п.) — они блокируют canvas из-за CORS
     svgStr = svgStr.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
     svgStr = svgStr.replace(/<defs[^>]*>[\s\S]*?<\/defs>/gi, "");

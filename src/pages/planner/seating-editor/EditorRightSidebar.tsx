@@ -10,6 +10,8 @@ interface EditorRightSidebarProps {
   onGuestDragStart: (guestId: string) => void;
   onGuestDragEnd: () => void;
   onReorderGuests?: (guests: GuestItem[]) => void;
+  selectedTableId?: string | null;
+  onSeatGuest?: (guestId: string, tableId: string | null) => void;
 }
 
 interface TableBlock {
@@ -72,6 +74,8 @@ export default function EditorRightSidebar({
   onGuestDragStart,
   onGuestDragEnd,
   onReorderGuests,
+  selectedTableId,
+  onSeatGuest,
 }: EditorRightSidebarProps) {
   const dragGuestRef = useRef<string | null>(null);
   const [dragOverGuestId, setDragOverGuestId] = useState<string | null>(null);
@@ -196,6 +200,14 @@ export default function EditorRightSidebar({
           value={guestSearch}
           onChange={(e) => onGuestSearchChange(e.target.value)}
         />
+        {selectedTableId && (() => {
+          const selTable = tables.find(t => t.id === selectedTableId);
+          return selTable ? (
+            <p className="text-xs mt-1.5" style={{ color: "#c9a96e80", lineHeight: 1.4 }}>
+              Нажмите <span style={{ color: "var(--gold)" }}>+</span> рядом с гостем — посадить за «{selTable.label}»
+            </p>
+          ) : null;
+        })()}
       </div>
 
       {/* Blocks */}
@@ -288,6 +300,12 @@ export default function EditorRightSidebar({
                     onReorderGuests(merged);
                   };
 
+                  // Кнопка + для назначения гостя за выбранный стол
+                  const canSeat = selectedTableId && onSeatGuest && guest.tableId !== selectedTableId;
+                  const selTable = selectedTableId ? tables.find(t => t.id === selectedTableId) : null;
+                  const selCount = selectedTableId ? guests.filter(g => g.tableId === selectedTableId).length : 0;
+                  const isFull = selTable && selCount >= selTable.seats;
+
                   return (
                     <div
                       key={guest.id}
@@ -299,7 +317,7 @@ export default function EditorRightSidebar({
                       className="flex items-center gap-1 px-1.5 py-1 rounded cursor-grab active:cursor-grabbing"
                       style={{
                         background: isOver ? "#2a2318" : "#1a160f",
-                        border: `1px solid ${isOver ? "#c9a96e60" : "#c9a96e15"}`,
+                        border: `1px solid ${isOver ? "#c9a96e60" : canSeat && !isFull ? "#c9a96e30" : "#c9a96e15"}`,
                         transition: "all 0.1s",
                       }}
                     >
@@ -314,6 +332,23 @@ export default function EditorRightSidebar({
                           {guest.name}
                         </p>
                       </div>
+                      {/* Кнопка + посадить за выбранный стол */}
+                      {canSeat && (
+                        <button
+                          disabled={!!isFull}
+                          onClick={() => !isFull && onSeatGuest!(guest.id, selectedTableId!)}
+                          title={isFull ? "Стол заполнен" : `Посадить за «${selTable?.label}»`}
+                          style={{ background: "none", border: "none", cursor: isFull ? "not-allowed" : "pointer", color: isFull ? "#c9a96e20" : "#7ab87a", fontSize: 14, padding: "0 2px", lineHeight: 1, flexShrink: 0, fontWeight: 700 }}
+                        >+</button>
+                      )}
+                      {/* Кнопка × убрать со стола */}
+                      {guest.tableId && onSeatGuest && (
+                        <button
+                          onClick={() => onSeatGuest!(guest.id, null)}
+                          title="Убрать со стола"
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#c9a96e30", fontSize: 12, padding: "0 2px", lineHeight: 1, flexShrink: 0 }}
+                        >×</button>
+                      )}
                       {/* Стрелки ↑↓ */}
                       {block.table && (
                         <div className="flex flex-col" style={{ gap: 1, flexShrink: 0 }}>

@@ -129,30 +129,39 @@ def handler(event: dict, context) -> dict:
         vals.append(plan_id)
         cur.execute(f"UPDATE seating_plans SET {', '.join(fields)} WHERE id = %s", vals)
 
+        id_map = {}
         if "tables" in body:
             cur.execute("SELECT id FROM seating_tables WHERE plan_id = %s", (plan_id,))
             existing_ids = {r[0] for r in cur.fetchall()}
             incoming_ids = set()
             for t in body["tables"]:
-                if t.get("id") and t["id"] in existing_ids:
+                tid = t.get("id")
+                try:
+                    tid_int = int(tid) if tid else None
+                except (ValueError, TypeError):
+                    tid_int = None
+                if tid_int and tid_int in existing_ids:
                     cur.execute(
                         "UPDATE seating_tables SET label=%s, shape=%s, x=%s, y=%s, width=%s, height=%s, seats=%s, color=%s, rotation=%s, scale=%s WHERE id=%s",
-                        (t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0), t.get("scale",1.0), t["id"])
+                        (t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0), t.get("scale",1.0), tid_int)
                     )
-                    incoming_ids.add(t["id"])
+                    incoming_ids.add(tid_int)
                 else:
                     cur.execute(
                         "INSERT INTO seating_tables (plan_id, label, shape, x, y, width, height, seats, color, rotation, scale) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
                         (plan_id, t.get("label",""), t.get("shape","round"), t.get("x",100), t.get("y",100), t.get("width",120), t.get("height",120), t.get("seats",8), t.get("color","#c9a96e"), t.get("rotation",0), t.get("scale",1.0))
                     )
-                    incoming_ids.add(cur.fetchone()[0])
+                    new_id = cur.fetchone()[0]
+                    incoming_ids.add(new_id)
+                    if tid:
+                        id_map[str(tid)] = new_id
             for old_id in existing_ids - incoming_ids:
                 cur.execute("UPDATE seating_guests SET table_id = NULL WHERE table_id = %s", (old_id,))
                 cur.execute("UPDATE seating_tables SET plan_id = -1 WHERE id = %s", (old_id,))
 
         conn.commit()
         conn.close()
-        return {"statusCode": 200, "headers": CORS, "body": json.dumps({"ok": True})}
+        return {"statusCode": 200, "headers": CORS, "body": json.dumps({"ok": True, "id_map": id_map})}
 
     conn.close()
     return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "Укажите action: list | create | get | update | by_token"})}

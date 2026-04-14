@@ -45,7 +45,7 @@ export function getTableDimensions(shape: TableShape, seats: number) {
 }
 
 // Truncate name for SVG display
-function shortName(name: string, max = 8) {
+function shortName(name: string, max = 9) {
   if (name.length <= max) return name;
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return `${parts[0][0]}. ${parts[parts.length - 1]}`;
@@ -91,14 +91,14 @@ export function RoundTable({
             {guest && (
               <text
                 x={d.cx}
-                y={d.cy + (d.cy > 0 ? 10 : -8)}
+                y={d.cy + (d.cy > 0 ? 12 : -10)}
                 textAnchor="middle"
-                fontSize={5}
+                fontSize={7}
                 fontFamily="Montserrat, sans-serif"
                 fill="#c9a96e"
                 style={{ pointerEvents: "none", userSelect: "none" }}
               >
-                {shortName(guest.name, 7)}
+                {shortName(guest.name, 9)}
               </text>
             )}
           </g>
@@ -161,8 +161,8 @@ export function RectTable({
             <g key={`t${i}`}>
               <circle cx={sx} cy={-h / 2 - 5} r={guest ? 4 : 3} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1} />
               {guest && (
-                <text x={sx} y={-h / 2 - 12} textAnchor="middle" fontSize={4} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
-                  {shortName(guest.name, 7)}
+                <text x={sx} y={-h / 2 - 14} textAnchor="middle" fontSize={6} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
+                  {shortName(guest.name, 9)}
                 </text>
               )}
             </g>
@@ -175,8 +175,8 @@ export function RectTable({
             <g key={`b${i}`}>
               <circle cx={sx} cy={h / 2 + 5} r={guest ? 4 : 3} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1} />
               {guest && (
-                <text x={sx} y={h / 2 + 12} textAnchor="middle" fontSize={4} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
-                  {shortName(guest.name, 7)}
+                <text x={sx} y={h / 2 + 14} textAnchor="middle" fontSize={6} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
+                  {shortName(guest.name, 9)}
                 </text>
               )}
             </g>
@@ -238,14 +238,14 @@ export function OvalTable({
             {guest && (
               <text
                 x={d.cx}
-                y={d.cy + (d.cy > 0 ? 9 : -7)}
+                y={d.cy + (d.cy > 0 ? 11 : -9)}
                 textAnchor="middle"
-                fontSize={4}
+                fontSize={6}
                 fontFamily="Montserrat, sans-serif"
                 fill="#c9a96e"
                 style={{ pointerEvents: "none", userSelect: "none" }}
               >
-                {shortName(guest.name, 7)}
+                {shortName(guest.name, 9)}
               </text>
             )}
           </g>
@@ -361,14 +361,14 @@ export function PresidiumTable({
             {guest && (
               <text
                 x={sx}
-                y={-h / 2 - 15}
+                y={-h / 2 - 17}
                 textAnchor="middle"
-                fontSize={4}
+                fontSize={6}
                 fontFamily="Montserrat, sans-serif"
                 fill="#e8d5a3"
                 style={{ pointerEvents: "none", userSelect: "none" }}
               >
-                {shortName(guest.name, 8)}
+                {shortName(guest.name, 9)}
               </text>
             )}
           </g>

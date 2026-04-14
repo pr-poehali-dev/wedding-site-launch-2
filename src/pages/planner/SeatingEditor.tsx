@@ -109,11 +109,19 @@ export default function SeatingEditor({
         try {
           const headers: Record<string, string> = { "Content-Type": "application/json" };
           if (sessionId) headers["X-Session-Id"] = sessionId;
-          await fetch(PLANS_API, {
+          const res = await fetch(PLANS_API, {
             method: "POST",
             headers,
-            body: JSON.stringify({ action: "update", planId, tables: updatedTables }),
+            body: JSON.stringify({ action: "update", plan_id: planId, tables: updatedTables }),
           });
+          const data = await res.json();
+          // Обновляем id столов: backend возвращает маппинг temp_id -> real_id
+          if (data.id_map && Object.keys(data.id_map).length > 0) {
+            const mapped = tablesRef.current.map((t) =>
+              data.id_map[t.id] ? { ...t, id: String(data.id_map[t.id]) } : t
+            );
+            onUpdateTables(mapped);
+          }
           setSaved(true);
           setTimeout(() => setSaved(false), 2000);
         } catch {
@@ -123,7 +131,7 @@ export default function SeatingEditor({
         }
       }, 1500);
     },
-    [sessionId, planId]
+    [sessionId, planId, onUpdateTables]
   );
 
   const draggingRef = useRef(dragging);
@@ -432,6 +440,8 @@ export default function SeatingEditor({
           onGuestDragStart={handleGuestDragStart}
           onGuestDragEnd={() => setDraggingGuest(null)}
           onReorderGuests={onReorderGuests}
+          selectedTableId={selectedId}
+          onSeatGuest={handleSeatGuestMobile}
         />
       </div>
 
