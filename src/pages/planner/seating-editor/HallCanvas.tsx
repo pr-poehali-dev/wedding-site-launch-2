@@ -297,8 +297,8 @@ export default function HallCanvas({
           {inlineEditor}
         </svg>
 
-        {/* Resize handles — desktop only */}
-        <div className="hidden md:block">
+        {/* Resize handles */}
+        <div>
           <div onMouseDown={(e) => handleResizeMouseDown(e, "right")} title="Ширина"
             style={{ position: "absolute", top: "10%", right: -6, width: HANDLE + 4, height: "80%", cursor: "ew-resize", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
             <div style={{ width: 4, height: "60%", minHeight: 32, borderRadius: 4, background: resizeEdge ? "#c9a96e" : "#c9a96e50" }} />

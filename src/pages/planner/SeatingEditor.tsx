@@ -125,39 +125,45 @@ export default function SeatingEditor({
     [sessionId, planId]
   );
 
+  const draggingRef = useRef(dragging);
+  draggingRef.current = dragging;
+  const tablesRef = useRef(tables);
+  tablesRef.current = tables;
+
   const handleTableMouseDown = useCallback(
     (e: React.MouseEvent, tableId: string) => {
       e.stopPropagation();
+      e.preventDefault();
       setSelectedId(tableId);
       const pt = getSvgPoint(e.clientX, e.clientY);
       const table = tables.find((t) => t.id === tableId);
       if (!table) return;
-      setDragging({ tableId, offsetX: pt.x - table.x, offsetY: pt.y - table.y });
+      const drag = { tableId, offsetX: pt.x - table.x, offsetY: pt.y - table.y };
+      setDragging(drag);
+
+      const onMove = (ev: MouseEvent) => {
+        const d = draggingRef.current;
+        if (!d) return;
+        const pt2 = getSvgPoint(ev.clientX, ev.clientY);
+        const newX = Math.max(30, Math.min(HALL_W - 30, pt2.x - d.offsetX));
+        const newY = Math.max(30, Math.min(HALL_H - 30, pt2.y - d.offsetY));
+        onUpdateTables(tablesRef.current.map((t) => t.id === d.tableId ? { ...t, x: newX, y: newY } : t));
+      };
+      const onUp = () => {
+        scheduleSave(tablesRef.current);
+        setDragging(null);
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
     },
-    [tables, getSvgPoint]
+    [tables, getSvgPoint, onUpdateTables, scheduleSave, HALL_W, HALL_H]
   );
 
-  const handleSvgMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!dragging) return;
-      const pt = getSvgPoint(e.clientX, e.clientY);
-      const newX = Math.max(30, Math.min(HALL_W - 30, pt.x - dragging.offsetX));
-      const newY = Math.max(30, Math.min(HALL_H - 30, pt.y - dragging.offsetY));
-      onUpdateTables(
-        tables.map((t) =>
-          t.id === dragging.tableId ? { ...t, x: newX, y: newY } : t
-        )
-      );
-    },
-    [dragging, tables, onUpdateTables, getSvgPoint, HALL_W, HALL_H]
-  );
-
-  const handleSvgMouseUp = useCallback(() => {
-    if (dragging) {
-      scheduleSave(tables);
-      setDragging(null);
-    }
-  }, [dragging, tables, scheduleSave]);
+  // Оставляем пустые заглушки — drag теперь через window
+  const handleSvgMouseMove = useCallback((_e: React.MouseEvent) => {}, []);
+  const handleSvgMouseUp = useCallback(() => {}, []);
 
   const handleSvgClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as SVGElement).tagName === "svg" || (e.target as SVGElement).tagName === "rect") {
@@ -456,7 +462,7 @@ export default function SeatingEditor({
             <p className="text-xs uppercase tracking-widest" style={{ color: "var(--gold)" }}>Гости по столам</p>
             {selectedTable && (
               <p style={{ color: "#c9a96e80", fontSize: 11, marginTop: 2 }}>
-                Нажмите на гостя, чтобы посадить за «{selectedTable.label}»
+                Нажмите «→ сюда» рядом с гостем, чтобы посадить за «{selectedTable.label}»
               </p>
             )}
           </div>
@@ -543,11 +549,13 @@ export default function SeatingEditor({
                           <span style={{ color: "#c9a96e80", fontSize: 11, minWidth: 16, flexShrink: 0 }}>{gIdx + 1}.</span>
                         )}
                         <span
-                          style={{ flex: 1, color: "var(--cream)", fontSize: 13, cursor: selectedId ? "pointer" : "default" }}
-                          onClick={() => { if (selectedId) handleSeatGuestMobile(guest.id, selectedId); }}
+                          style={{ flex: 1, color: "var(--cream)", fontSize: 13 }}
                         >{guest.name}</span>
                         {selectedId && guest.tableId !== selectedId && (
-                          <span style={{ color: "#c9a96e", fontSize: 13 }}>→</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleSeatGuestMobile(guest.id, selectedId!); }}
+                            style={{ background: "#1a160f", border: "1px solid #c9a96e60", color: "var(--gold)", fontSize: 12, padding: "3px 8px", borderRadius: 4, flexShrink: 0, cursor: "pointer" }}
+                          >→ сюда</button>
                         )}
                         {/* Стрелки ↑↓ */}
                         {block.tableId && (
