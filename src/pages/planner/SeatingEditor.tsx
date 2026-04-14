@@ -66,13 +66,20 @@ export default function SeatingEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hallShape, setHallShape] = useState<HallShape>("rect-h");
+  const [hallW, setHallW] = useState(900);
+  const [hallH, setHallH] = useState(500);
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hallPreset = HALL_PRESETS.find((p) => p.shape === hallShape) ?? HALL_PRESETS[1];
-  const HALL_W = hallPreset.w;
-  const HALL_H = hallPreset.h;
+  // Sync hall shape preset → dimensions (only when preset changes)
+  useEffect(() => {
+    const preset = HALL_PRESETS.find((p) => p.shape === hallShape);
+    if (preset) { setHallW(preset.w); setHallH(preset.h); }
+  }, [hallShape]);
+
+  const HALL_W = hallW;
+  const HALL_H = hallH;
 
   const selectedTable = tables.find((t) => t.id === selectedId) ?? null;
 
@@ -161,7 +168,9 @@ export default function SeatingEditor({
       const newTable: TableItem = {
         id: generateId(),
         shape,
-        label: shape === "presidium" ? "Президиум" : `Стол ${tables.length + 1}`,
+        label: shape === "presidium"
+          ? "Президиум"
+          : `Стол ${tables.filter((t) => t.shape !== "presidium").length + 1}`,
         seats: shape === "row" ? 10 : shape === "presidium" ? 8 : 6,
         x: 150 + Math.random() * (HALL_W - 300),
         y: 100 + Math.random() * (HALL_H - 200),
@@ -347,6 +356,7 @@ export default function SeatingEditor({
           guests={guests}
           hallW={HALL_W}
           hallH={HALL_H}
+          onResizeHall={(w, h) => { setHallW(w); setHallH(h); }}
           selectedId={selectedId}
           dragging={dragging}
           dragOverTableId={dragOverTableId}
