@@ -32,15 +32,13 @@ export function generateId() {
 export function getTableDimensions(shape: TableShape, seats: number) {
   switch (shape) {
     case "round":
-      return { r: Math.max(32, 20 + seats * 4) };
+      return { r: Math.max(16, 10 + seats * 2) };
     case "oval":
-      return { rx: Math.max(55, 30 + seats * 4), ry: Math.max(32, 18 + seats * 2) };
+      return { rx: Math.max(28, 15 + seats * 2), ry: Math.max(16, 9 + seats * 1) };
     case "rect":
-      return { w: Math.max(80, 40 + seats * 12), h: 52 };
-    case "row":
-      return { w: Math.max(100, seats * 22), h: 28 };
+      return { w: Math.max(40, 20 + seats * 6), h: 26 };
     case "presidium":
-      return { w: Math.max(160, seats * 30), h: 36 };
+      return { w: Math.max(80, seats * 15), h: 18 };
     default:
       return {};
   }
@@ -70,8 +68,8 @@ export function RoundTable({
   for (let i = 0; i < table.seats; i++) {
     const angle = (2 * Math.PI * i) / table.seats - Math.PI / 2;
     seatDots.push({
-      cx: Math.cos(angle) * (r + 10),
-      cy: Math.sin(angle) * (r + 10),
+      cx: Math.cos(angle) * (r + 5),
+      cy: Math.sin(angle) * (r + 5),
     });
   }
   return (
@@ -79,7 +77,7 @@ export function RoundTable({
       <circle
         cx={0}
         cy={0}
-        r={r + 12}
+        r={r + 6}
         fill="transparent"
         stroke={dragOver ? "#e8d5a3" : "transparent"}
         strokeWidth={dragOver ? 2 : 0}
@@ -89,13 +87,13 @@ export function RoundTable({
         const guest = guests[i];
         return (
           <g key={i}>
-            <circle cx={d.cx} cy={d.cy} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+            <circle cx={d.cx} cy={d.cy} r={guest ? 4 : 3} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1} />
             {guest && (
               <text
                 x={d.cx}
-                y={d.cy + (d.cy > 0 ? 18 : -14)}
+                y={d.cy + (d.cy > 0 ? 9 : -7)}
                 textAnchor="middle"
-                fontSize={7}
+                fontSize={4}
                 fontFamily="Montserrat, sans-serif"
                 fill="#c9a96e"
                 style={{ pointerEvents: "none", userSelect: "none" }}
@@ -112,14 +110,14 @@ export function RoundTable({
         r={r}
         fill="#1a160f"
         stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
-        strokeWidth={selected ? 2.5 : 1.5}
+        strokeWidth={selected ? 2 : 1}
       />
       <text
         x={0}
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={11}
+        fontSize={6}
         fontFamily="Montserrat, sans-serif"
         fill="#f5edd8"
         style={{ pointerEvents: "none", userSelect: "none" }}
@@ -161,9 +159,9 @@ export function RectTable({
           const guest = guests[i];
           return (
             <g key={`t${i}`}>
-              <circle cx={sx} cy={-h / 2 - 10} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+              <circle cx={sx} cy={-h / 2 - 5} r={guest ? 4 : 3} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1} />
               {guest && (
-                <text x={sx} y={-h / 2 - 22} textAnchor="middle" fontSize={7} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
+                <text x={sx} y={-h / 2 - 12} textAnchor="middle" fontSize={4} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
                   {shortName(guest.name, 7)}
                 </text>
               )}
@@ -175,9 +173,9 @@ export function RectTable({
           const guest = guests[seatsTop.length + i];
           return (
             <g key={`b${i}`}>
-              <circle cx={sx} cy={h / 2 + 10} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+              <circle cx={sx} cy={h / 2 + 5} r={guest ? 4 : 3} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1} />
               {guest && (
-                <text x={sx} y={h / 2 + 24} textAnchor="middle" fontSize={7} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
+                <text x={sx} y={h / 2 + 12} textAnchor="middle" fontSize={4} fontFamily="Montserrat, sans-serif" fill="#c9a96e" style={{ pointerEvents: "none", userSelect: "none" }}>
                   {shortName(guest.name, 7)}
                 </text>
               )}
@@ -189,22 +187,22 @@ export function RectTable({
         y={-h / 2}
         width={w}
         height={h}
-        rx={isRow ? 3 : 6}
+        rx={isRow ? 2 : 3}
         fill="#1a160f"
         stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
-        strokeWidth={selected ? 2.5 : 1.5}
+        strokeWidth={selected ? 2 : 1}
       />
       <text
         x={0}
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={isRow ? 9 : 11}
+        fontSize={6}
         fontFamily="Montserrat, sans-serif"
         fill="#f5edd8"
         style={{ pointerEvents: "none", userSelect: "none" }}
       >
-        {table.label.slice(0, isRow ? 12 : 10)}
+        {table.label.slice(0, 10)}
       </text>
     </>
   );
@@ -226,8 +224,8 @@ export function OvalTable({
   for (let i = 0; i < table.seats; i++) {
     const angle = (2 * Math.PI * i) / table.seats - Math.PI / 2;
     seatDots.push({
-      cx: Math.cos(angle) * (rx + 10),
-      cy: Math.sin(angle) * (ry + 10),
+      cx: Math.cos(angle) * (rx + 5),
+      cy: Math.sin(angle) * (ry + 5),
     });
   }
   return (
@@ -236,13 +234,13 @@ export function OvalTable({
         const guest = guests[i];
         return (
           <g key={i}>
-            <circle cx={d.cx} cy={d.cy} r={guest ? 7 : 5} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1.5} />
+            <circle cx={d.cx} cy={d.cy} r={guest ? 4 : 3} fill={guest ? "#2a3018" : "#2a2318"} stroke={guest ? "#7ab87a" : table.color} strokeWidth={1} />
             {guest && (
               <text
                 x={d.cx}
-                y={d.cy + (d.cy > 0 ? 18 : -14)}
+                y={d.cy + (d.cy > 0 ? 9 : -7)}
                 textAnchor="middle"
-                fontSize={7}
+                fontSize={4}
                 fontFamily="Montserrat, sans-serif"
                 fill="#c9a96e"
                 style={{ pointerEvents: "none", userSelect: "none" }}
@@ -260,14 +258,14 @@ export function OvalTable({
         ry={ry}
         fill="#1a160f"
         stroke={selected ? "#c9a96e" : dragOver ? "#e8d5a3" : table.color}
-        strokeWidth={selected ? 2.5 : 1.5}
+        strokeWidth={selected ? 2 : 1}
       />
       <text
         x={0}
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={11}
+        fontSize={6}
         fontFamily="Montserrat, sans-serif"
         fill="#f5edd8"
         style={{ pointerEvents: "none", userSelect: "none" }}
@@ -278,7 +276,7 @@ export function OvalTable({
   );
 }
 
-// Президиум — одна линия мест СВЕРХУ вдоль длинной стороны
+// ── Президиум — одна линия мест СВЕРХУ вдоль длинной стороны
 export function PresidiumTable({
   table,
   selected,
@@ -314,7 +312,7 @@ export function PresidiumTable({
         y={0}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={10}
+        fontSize={5}
         fontFamily="Montserrat, sans-serif"
         fill="#c9a96e"
         fontWeight="bold"
@@ -332,27 +330,27 @@ export function PresidiumTable({
               x1={sx}
               y1={-h / 2}
               x2={sx}
-              y2={-h / 2 - 8}
+              y2={-h / 2 - 4}
               stroke={table.color}
-              strokeWidth={1}
+              strokeWidth={0.5}
               opacity={0.4}
             />
             {/* Место */}
             <circle
               cx={sx}
-              cy={-h / 2 - 16}
-              r={guest ? 8 : 6}
+              cy={-h / 2 - 8}
+              r={guest ? 4 : 3}
               fill={guest ? "#1e2a10" : "#2a2318"}
               stroke={guest ? "#7ab87a" : table.color}
-              strokeWidth={1.5}
+              strokeWidth={1}
             />
             {/* Номер места */}
             <text
               x={sx}
-              y={-h / 2 - 16}
+              y={-h / 2 - 8}
               textAnchor="middle"
               dominantBaseline="middle"
-              fontSize={6}
+              fontSize={3}
               fontFamily="Montserrat, sans-serif"
               fill={guest ? "#7ab87a" : "#c9a96e80"}
               style={{ pointerEvents: "none", userSelect: "none" }}
@@ -363,9 +361,9 @@ export function PresidiumTable({
             {guest && (
               <text
                 x={sx}
-                y={-h / 2 - 30}
+                y={-h / 2 - 15}
                 textAnchor="middle"
-                fontSize={7}
+                fontSize={4}
                 fontFamily="Montserrat, sans-serif"
                 fill="#e8d5a3"
                 style={{ pointerEvents: "none", userSelect: "none" }}
