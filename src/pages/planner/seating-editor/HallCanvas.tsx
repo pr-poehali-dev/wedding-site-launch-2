@@ -2,10 +2,10 @@ import React, { useRef, useState, useCallback, useEffect } from "react";
 import { RoundTable, RectTable, OvalTable, PresidiumTable, GRID_SIZE } from "./tableShapes";
 import type { TableItem, GuestItem } from "../SeatingEditor";
 
-const MIN_W = 400;
-const MIN_H = 300;
-const MAX_W = 2000;
-const MAX_H = 1600;
+const MIN_W = 200;
+const MIN_H = 150;
+const MAX_W = 900;
+const MAX_H = 700;
 
 interface HallCanvasProps {
   svgRef: React.RefObject<SVGSVGElement>;
@@ -124,8 +124,8 @@ export default function HallCanvas({
     const scaleY = hallH / rect.height;
     const dx = (touch.clientX - touchDragRef.current.startX) * scaleX;
     const dy = (touch.clientY - touchDragRef.current.startY) * scaleY;
-    const newX = Math.max(60, Math.min(hallW - 60, touchDragRef.current.tableX + dx));
-    const newY = Math.max(60, Math.min(hallH - 60, touchDragRef.current.tableY + dy));
+    const newX = Math.max(30, Math.min(hallW - 30, touchDragRef.current.tableX + dx));
+    const newY = Math.max(30, Math.min(hallH - 30, touchDragRef.current.tableY + dy));
     onTouchTableMove(touchDragRef.current.tableId, newX, newY);
   }, [onTouchTableMove, hallW, hallH, svgRef]);
 
@@ -164,20 +164,14 @@ export default function HallCanvas({
       const onMove = (ev: MouseEvent) => {
         const start = resizeStartRef.current;
         if (!start || !resizingRef.current) return;
+        // dx/dy в экранных пикселях — добавляем напрямую к SVG-размеру (1px = 1 unit)
         const dx = ev.clientX - start.x;
         const dy = ev.clientY - start.y;
-        const svgEl = svgRef.current;
-        let scaleX = 1, scaleY = 1;
-        if (svgEl) {
-          const rect = svgEl.getBoundingClientRect();
-          scaleX = start.w / rect.width;
-          scaleY = start.h / rect.height;
-        }
         const newW = resizingRef.current !== "bottom"
-          ? Math.max(MIN_W, Math.min(MAX_W, start.w + dx * scaleX))
+          ? Math.max(MIN_W, Math.min(MAX_W, start.w + dx))
           : start.w;
         const newH = resizingRef.current !== "right"
-          ? Math.max(MIN_H, Math.min(MAX_H, start.h + dy * scaleY))
+          ? Math.max(MIN_H, Math.min(MAX_H, start.h + dy))
           : start.h;
         onResizeHall(Math.round(newW), Math.round(newH));
       };

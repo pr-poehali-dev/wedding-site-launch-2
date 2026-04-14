@@ -68,8 +68,8 @@ export default function SeatingEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hallShape, setHallShape] = useState<HallShape>("rect-h");
-  const [hallW, setHallW] = useState(900);
-  const [hallH, setHallH] = useState(500);
+  const [hallW, setHallW] = useState(500);
+  const [hallH, setHallH] = useState(300);
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,8 +141,8 @@ export default function SeatingEditor({
     (e: React.MouseEvent) => {
       if (!dragging) return;
       const pt = getSvgPoint(e.clientX, e.clientY);
-      const newX = Math.max(60, Math.min(HALL_W - 60, pt.x - dragging.offsetX));
-      const newY = Math.max(60, Math.min(HALL_H - 60, pt.y - dragging.offsetY));
+      const newX = Math.max(30, Math.min(HALL_W - 30, pt.x - dragging.offsetX));
+      const newY = Math.max(30, Math.min(HALL_H - 30, pt.y - dragging.offsetY));
       onUpdateTables(
         tables.map((t) =>
           t.id === dragging.tableId ? { ...t, x: newX, y: newY } : t
@@ -174,8 +174,8 @@ export default function SeatingEditor({
           ? "Президиум"
           : `Стол ${tables.filter((t) => t.shape !== "presidium").length + 1}`,
         seats: shape === "presidium" ? 8 : 6,
-        x: 120 + Math.random() * Math.max(60, HALL_W - 240),
-        y: 100 + Math.random() * Math.max(60, HALL_H - 200),
+        x: 60 + Math.random() * Math.max(40, HALL_W - 120),
+        y: 50 + Math.random() * Math.max(40, HALL_H - 100),
         color: TABLE_COLORS[0].value,
       };
       const updated = [...tables, newTable];

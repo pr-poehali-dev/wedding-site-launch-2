@@ -7,7 +7,7 @@ export const TABLE_COLORS = [
   { label: "Зелёный", value: "#7ab87a" },
 ];
 
-export const GRID_SIZE = 50;
+export const GRID_SIZE = 20;
 export const HALL_W = 900;
 export const HALL_H = 620;
 
@@ -20,9 +20,9 @@ export interface HallSize {
 }
 
 export const HALL_PRESETS: { shape: HallShape; label: string; w: number; h: number }[] = [
-  { shape: "square", label: "Квадратный", w: 700, h: 700 },
-  { shape: "rect-h", label: "Горизонтальный", w: 900, h: 500 },
-  { shape: "rect-v", label: "Вертикальный", w: 550, h: 800 },
+  { shape: "square", label: "Квадратный", w: 400, h: 400 },
+  { shape: "rect-h", label: "Горизонтальный", w: 500, h: 300 },
+  { shape: "rect-v", label: "Вертикальный", w: 320, h: 480 },
 ];
 
 export function generateId() {
