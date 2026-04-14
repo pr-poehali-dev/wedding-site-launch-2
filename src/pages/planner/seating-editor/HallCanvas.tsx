@@ -246,7 +246,7 @@ export default function HallCanvas({
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-auto p-2 md:p-4"
+      className="w-full h-full overflow-hidden p-1 md:p-4 md:overflow-auto"
       style={{ display: "flex", alignItems: "flex-start", justifyContent: "stretch" }}
     >
       <div style={{ position: "relative", flex: 1, minWidth: 0 }}>

@@ -380,7 +380,7 @@ export default function SeatingEditor({
 
   return (
     <div
-      className="flex flex-col h-full min-h-screen font-montserrat"
+      className="flex flex-col md:h-full font-montserrat"
       style={{ background: "var(--velvet)", color: "var(--cream)" }}
     >
       <EditorToolbar
@@ -415,10 +415,10 @@ export default function SeatingEditor({
       </div>
 
       {/* ── Mobile layout ── */}
-      <div className="flex md:hidden flex-col" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+      <div className="flex md:hidden flex-col">
 
         {/* Зал */}
-        <div style={{ width: "100%", aspectRatio: `${HALL_W}/${HALL_H}`, minHeight: 160, flexShrink: 0, background: "#110f0a" }}>
+        <div style={{ width: "100%", height: 220, flexShrink: 0, background: "#110f0a", overflow: "hidden" }}>
           <HallCanvas
             {...hallCanvasProps}
             onTouchTableMove={handleTouchTableMove}

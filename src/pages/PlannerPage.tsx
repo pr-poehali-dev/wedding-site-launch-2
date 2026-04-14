@@ -161,7 +161,7 @@ export default function PlannerPage() {
               Гости ({guests.length})
             </button>
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 md:overflow-hidden overflow-y-auto">
             <SeatingEditor
               plan={{ id: String(activePlan.id), title: planTitle }}
               tables={tables}
